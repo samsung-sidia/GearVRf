@@ -80,6 +80,12 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
         mPhysicsContext = GVRPhysicsContext.getInstance();
     }
 
+    GVRRigidBody(GVRContext gvrContext, long nativeRigidBody) {
+        super(gvrContext, nativeRigidBody);
+        mCollisionGroup = -1;
+        mPhysicsContext = GVRPhysicsContext.getInstance();
+    }
+
     static public long getComponentType() {
         return Native3DRigidBody.getComponentType();
     }
