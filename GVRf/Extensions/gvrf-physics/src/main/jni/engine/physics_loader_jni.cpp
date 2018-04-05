@@ -31,6 +31,10 @@ extern "C" {
     JNIEXPORT jlong JNICALL
     Java_org_gearvrf_physics_NativePhysics3DLoader_getNextConstraint(JNIEnv* env, jclass clazz,
             jlong jloader);
+
+    JNIEXPORT jlong JNICALL
+    Java_org_gearvrf_physics_NativePhysics3DLoader_getConstraintBodyA(JNIEnv* env, jclass clazz,
+            jlong jloader, jlong jconstraint);
 }
 
 JNIEXPORT jlong JNICALL
@@ -82,6 +86,16 @@ Java_org_gearvrf_physics_NativePhysics3DLoader_getNextConstraint(JNIEnv* env, jc
     PhysicsLoader *loader = reinterpret_cast<PhysicsLoader*>(jloader);
 
     return reinterpret_cast<jlong>(loader->getNextConstraint());
+}
+
+JNIEXPORT jlong JNICALL
+Java_org_gearvrf_physics_NativePhysics3DLoader_getConstraintBodyA(JNIEnv* env, jclass clazz,
+        jlong jloader, jlong jconstraint)
+{
+    PhysicsLoader *loader = reinterpret_cast<PhysicsLoader*>(jloader);
+    PhysicsConstraint *constraint = reinterpret_cast<PhysicsConstraint*>(jconstraint);
+
+    return reinterpret_cast<jlong >(loader->getConstraintBodyA(constraint));
 }
 
 }

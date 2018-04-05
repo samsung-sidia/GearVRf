@@ -27,7 +27,7 @@ namespace gvr {
     class PhysicsRigidBody;
     class BulletRigidBody;
 
-    class BulletFixedConstraint : public PhysicsConstraint,
+    class BulletFixedConstraint : public PhysicsFixedConstraint,
                                          BulletObject  {
 
     public:

@@ -24,6 +24,8 @@ public:
     virtual const char* getRigidBodyName(PhysicsRigidBody *body) const = 0;
 
     virtual PhysicsConstraint* getNextConstraint() = 0;
+
+    virtual PhysicsRigidBody* getConstraintBodyA(PhysicsConstraint *constraint) = 0;
 };
 
 }

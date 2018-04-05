@@ -23,6 +23,8 @@ public:
 
     virtual PhysicsConstraint* getNextConstraint();
 
+    virtual PhysicsRigidBody* getConstraintBodyA(PhysicsConstraint *constraint);
+
 private:
     btBulletWorldImporter *mImporter;
     int mCurrRigidBody;

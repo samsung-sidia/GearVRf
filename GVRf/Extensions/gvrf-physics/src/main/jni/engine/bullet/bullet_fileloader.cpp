@@ -8,11 +8,25 @@
 #include <btBulletDynamicsCommon.h>
 #include <Serialize/BulletWorldImporter/btBulletWorldImporter.h>
 #include <BulletDynamics/ConstraintSolver/btConstraintSolver.h>
+#include <BulletDynamics/ConstraintSolver/btConeTwistConstraint.h>
+#include <BulletDynamics/ConstraintSolver/btFixedConstraint.h>
+#include <BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h>
+#include <BulletDynamics/ConstraintSolver/btHingeConstraint.h>
+#include <BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h>
+#include <BulletDynamics/ConstraintSolver/btSliderConstraint.h>
 #include <BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
 
 #include "bullet_fileloader.h"
 #include "bullet_world.h"
 #include "bullet_rigidbody.h"
+#include "bullet_conetwistconstraint.h"
+#include "bullet_fixedconstraint.h"
+#include "bullet_generic6dofconstraint.h"
+#include "bullet_hingeconstraint.h"
+#include "bullet_point2pointconstraint.h"
+#include "bullet_sliderconstraint.h"
+
+static char tag[] = "BulletLoaderN";
 
 namespace gvr {
 
@@ -23,7 +37,7 @@ static btBulletWorldImporter *parse_buffer(char *buf, int len, btDynamicsWorld *
     return importer;
 }
 
-static void completeRigidBodies(btBulletWorldImporter *importer)
+static void createBulletRigidBodies(btBulletWorldImporter *importer)
 {
     for (int i = 0; i < importer->getNumRigidBodies(); i++)
     {
@@ -34,8 +48,37 @@ static void completeRigidBodies(btBulletWorldImporter *importer)
     }
 }
 
-static void completeConstraints(btBulletWorldImporter *importer)
+static void createBulletConstraints(btBulletWorldImporter *importer)
 {
+    for (int i = 0; i < importer->getNumConstraints(); i++)
+    {
+        btTypedConstraint *constraint = importer->getConstraintByIndex(i);
+
+        __android_log_print(ANDROID_LOG_DEBUG, tag, "new constraint: %p (type=%i)", constraint, (int)constraint->getConstraintType());
+
+        if (constraint->getConstraintType() == btTypedConstraintType::POINT2POINT_CONSTRAINT_TYPE)
+        {
+            btPoint2PointConstraint *p2p = static_cast<btPoint2PointConstraint*>(constraint);
+
+            // Constraint userPointer will point to newly created BulletPoint2PointConstraint
+            BulletPoint2PointConstraint *bp2p = new BulletPoint2PointConstraint(p2p);
+
+            __android_log_print(ANDROID_LOG_DEBUG, tag, "Created point-to-point constraint");
+
+            // Adapting pivot to GVRf coordinates system
+            btVector3 pivot = p2p->getPivotInA();
+            float t = pivot.getZ();
+            pivot.setZ(pivot.getY());
+            pivot.setY(t);
+            p2p->setPivotA(pivot);
+
+            pivot = p2p->getPivotInB();
+            t = pivot.getZ();
+            pivot.setZ(pivot.getY());
+            pivot.setY(t);
+            p2p->setPivotB(pivot);
+        }
+    }
 
 }
 
@@ -43,8 +86,9 @@ BulletFileLoader::BulletFileLoader(char *buffer, size_t length) :
     PhysicsLoader(buffer, length), mCurrRigidBody(0), mCurrConstraint(0)
 {
     mImporter = parse_buffer(buffer, length, nullptr);
-    completeRigidBodies(mImporter);
-    completeConstraints(mImporter);
+    createBulletRigidBodies(mImporter);
+
+    createBulletConstraints(mImporter);
 }
 
 BulletFileLoader::~BulletFileLoader()
@@ -81,11 +125,21 @@ PhysicsConstraint* BulletFileLoader::getNextConstraint()
     {
         void *phc = mImporter->getConstraintByIndex(mCurrConstraint)->getUserConstraintPtr();
 
-        ret = reinterpret_cast<PhysicsConstraint*>(phc);
+        ret = static_cast<PhysicsConstraint*>(phc);
+        __android_log_print(ANDROID_LOG_DEBUG, tag, "Sending constraint %i [%p / %p]",
+            mCurrConstraint, phc, mImporter->getConstraintByIndex(mCurrConstraint));
+
         ++mCurrConstraint;
     }
 
     return ret;
+}
+
+PhysicsRigidBody* BulletFileLoader::getConstraintBodyA(PhysicsConstraint *constraint)
+{
+    btTypedConstraint *btc = static_cast<btTypedConstraint*>(constraint->getUnderlying());
+    btRigidBody *rbA = &btc->getRigidBodyA();
+    return static_cast<PhysicsRigidBody*>(rbA->getUserPointer());
 }
 
 }
