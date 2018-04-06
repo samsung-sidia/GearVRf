@@ -43,6 +43,10 @@ public class GVRHingeConstraint extends GVRConstraint {
                 axisInA, axisInB));
     }
 
+    GVRHingeConstraint(GVRContext gvrContext, long nativeConstraint) {
+        super(gvrContext, nativeConstraint);
+    }
+
     /**
      * Set rotation limits (in radians) for the bodies.
      *

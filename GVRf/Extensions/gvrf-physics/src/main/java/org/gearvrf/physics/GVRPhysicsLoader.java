@@ -63,6 +63,7 @@ public class GVRPhysicsLoader {
                 Log.d(TAG, "Is slider constraint");
             } else if (constraintType == GVRConstraint.hingeConstraintId) {
                 Log.d(TAG, "Is hinge constraint");
+                constraint = new GVRHingeConstraint(gvrContext, nativeConstraint);
             } else if (constraintType == GVRConstraint.coneTwistConstraintId) {
                 Log.d(TAG, "Is cone twist constraint");
             } else if (constraintType == GVRConstraint.genericConstraintId) {

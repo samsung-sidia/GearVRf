@@ -28,6 +28,9 @@
 
 static char tag[] = "BulletLoaderN";
 
+static btMatrix3x3 matrixInvIdty(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f);
+static btTransform transformInvIdty(matrixInvIdty);
+
 namespace gvr {
 
 static btBulletWorldImporter *parse_buffer(char *buf, int len, btDynamicsWorld *world) {
@@ -48,6 +51,40 @@ static void createBulletRigidBodies(btBulletWorldImporter *importer)
     }
 }
 
+static void createBulletP2pConstraint(btPoint2PointConstraint *p2p)
+{
+    // Constraint userPointer will point to newly created BulletPoint2PointConstraint
+    BulletPoint2PointConstraint *bp2p = new BulletPoint2PointConstraint(p2p);
+
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created point-to-point constraint");
+
+    // Adapting pivot to GVRf coordinates system
+    btVector3 pivot = p2p->getPivotInA();
+    float t = pivot.getZ();
+    pivot.setZ(-pivot.getY());
+    pivot.setY(t);
+    p2p->setPivotA(pivot);
+
+    pivot = p2p->getPivotInB();
+    t = pivot.getZ();
+    pivot.setZ(-pivot.getY());
+    pivot.setY(t);
+    p2p->setPivotB(pivot);
+}
+
+static void createBulletHingeConstraint(btHingeConstraint *hg)
+{
+    BulletHingeConstraint *bhg = new BulletHingeConstraint(hg);
+
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created hinge constraint");
+
+    btTransform t = hg->getAFrame();
+    hg->getAFrame().mult(transformInvIdty, t);
+
+    t = hg->getBFrame();
+    hg->getBFrame().mult(transformInvIdty, t);
+}
+
 static void createBulletConstraints(btBulletWorldImporter *importer)
 {
     for (int i = 0; i < importer->getNumConstraints(); i++)
@@ -58,25 +95,11 @@ static void createBulletConstraints(btBulletWorldImporter *importer)
 
         if (constraint->getConstraintType() == btTypedConstraintType::POINT2POINT_CONSTRAINT_TYPE)
         {
-            btPoint2PointConstraint *p2p = static_cast<btPoint2PointConstraint*>(constraint);
-
-            // Constraint userPointer will point to newly created BulletPoint2PointConstraint
-            BulletPoint2PointConstraint *bp2p = new BulletPoint2PointConstraint(p2p);
-
-            __android_log_print(ANDROID_LOG_DEBUG, tag, "Created point-to-point constraint");
-
-            // Adapting pivot to GVRf coordinates system
-            btVector3 pivot = p2p->getPivotInA();
-            float t = pivot.getZ();
-            pivot.setZ(pivot.getY());
-            pivot.setY(t);
-            p2p->setPivotA(pivot);
-
-            pivot = p2p->getPivotInB();
-            t = pivot.getZ();
-            pivot.setZ(pivot.getY());
-            pivot.setY(t);
-            p2p->setPivotB(pivot);
+            createBulletP2pConstraint(static_cast<btPoint2PointConstraint*>(constraint));
+        }
+        else if (constraint->getConstraintType() == btTypedConstraintType::HINGE_CONSTRAINT_TYPE)
+        {
+            createBulletHingeConstraint(static_cast<btHingeConstraint*>(constraint));
         }
     }
 
