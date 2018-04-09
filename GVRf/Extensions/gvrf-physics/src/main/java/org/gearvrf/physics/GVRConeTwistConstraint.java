@@ -45,6 +45,10 @@ public class GVRConeTwistConstraint extends GVRConstraint {
                 bodyRotation, coneRotation));
     }
 
+    GVRConeTwistConstraint(GVRContext gvrContext, long nativeConstraint) {
+        super(gvrContext, nativeConstraint);
+    }
+
     /**
      * Sets the swinging limit (cone aperture) for the swinging body.
      *

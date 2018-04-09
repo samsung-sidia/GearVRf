@@ -85,6 +85,24 @@ static void createBulletHingeConstraint(btHingeConstraint *hg)
     hg->getBFrame().mult(transformInvIdty, t);
 }
 
+static void createBulletConeTwistConstraint(btConeTwistConstraint *ct)
+{
+    BulletConeTwistConstraint *bct = new BulletConeTwistConstraint(ct);
+
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created cone twist constraint");
+
+    btTransform tA = ct->getAFrame();
+    btTransform tB = ct->getBFrame();
+
+    btTransform t = tA;
+    tA.mult(transformInvIdty, t);
+
+    t = tB;
+    tB.mult(transformInvIdty, t);
+
+    ct->setFrames(tA, tB);
+}
+
 static void createBulletConstraints(btBulletWorldImporter *importer)
 {
     for (int i = 0; i < importer->getNumConstraints(); i++)
@@ -100,6 +118,10 @@ static void createBulletConstraints(btBulletWorldImporter *importer)
         else if (constraint->getConstraintType() == btTypedConstraintType::HINGE_CONSTRAINT_TYPE)
         {
             createBulletHingeConstraint(static_cast<btHingeConstraint*>(constraint));
+        }
+        else if (constraint->getConstraintType() == btTypedConstraintType::CONETWIST_CONSTRAINT_TYPE)
+        {
+            createBulletConeTwistConstraint(static_cast<btConeTwistConstraint*>(constraint));
         }
     }
 
