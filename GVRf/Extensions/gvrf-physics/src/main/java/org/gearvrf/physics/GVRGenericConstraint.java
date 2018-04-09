@@ -48,6 +48,10 @@ public class GVRGenericConstraint extends GVRConstraint {
                 rigidBodyB.getNative(), joint, rotationA, rotationB));
     }
 
+    GVRGenericConstraint(GVRContext gvrContext, long nativeConstraint) {
+        super(gvrContext, nativeConstraint);
+    }
+
     /**
      * Sets the lower limits for the "moving" body translation relative to joint point.
      *

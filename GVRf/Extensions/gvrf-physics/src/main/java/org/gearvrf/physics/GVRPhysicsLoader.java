@@ -69,6 +69,7 @@ public class GVRPhysicsLoader {
                 constraint = new GVRConeTwistConstraint(gvrContext, nativeConstraint);
             } else if (constraintType == GVRConstraint.genericConstraintId) {
                 Log.d(TAG, "Is generic (6 DoF) constraint");
+                constraint = new GVRGenericConstraint(gvrContext, nativeConstraint);
             }
 
             if (constraint != null) {

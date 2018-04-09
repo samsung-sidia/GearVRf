@@ -103,6 +103,24 @@ static void createBulletConeTwistConstraint(btConeTwistConstraint *ct)
     ct->setFrames(tA, tB);
 }
 
+static void createBulletGenericConstraint(btGeneric6DofConstraint *gen)
+{
+    BulletGeneric6dofConstraint *bct = new BulletGeneric6dofConstraint(gen);
+
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created generic 6DoF constraint");
+
+    btTransform tA = gen->getFrameOffsetA();
+    btTransform tB = gen->getFrameOffsetB();
+
+    btTransform t = tA;
+    tA.mult(transformInvIdty, t);
+
+    t = tB;
+    tB.mult(transformInvIdty, t);
+
+    gen->setFrames(tA, tB);
+}
+
 static void createBulletConstraints(btBulletWorldImporter *importer)
 {
     for (int i = 0; i < importer->getNumConstraints(); i++)
@@ -122,6 +140,12 @@ static void createBulletConstraints(btBulletWorldImporter *importer)
         else if (constraint->getConstraintType() == btTypedConstraintType::CONETWIST_CONSTRAINT_TYPE)
         {
             createBulletConeTwistConstraint(static_cast<btConeTwistConstraint*>(constraint));
+        }
+        else if (constraint->getConstraintType() == btTypedConstraintType::D6_CONSTRAINT_TYPE ||
+                 constraint->getConstraintType() == btTypedConstraintType::D6_SPRING_CONSTRAINT_TYPE)
+        {
+            // Blender exports generic constraint as generic spring constraint
+            createBulletGenericConstraint(static_cast<btGeneric6DofConstraint*>(constraint));
         }
     }
 
