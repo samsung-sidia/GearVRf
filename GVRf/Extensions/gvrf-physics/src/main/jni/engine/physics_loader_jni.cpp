@@ -18,7 +18,7 @@ namespace gvr {
 extern "C" {
     JNIEXPORT jlong JNICALL
     Java_org_gearvrf_physics_NativePhysics3DLoader_ctor(JNIEnv* env, jclass clazz,
-            jstring fname, jobject jassetmanager);
+            jstring fname, jboolean ignoreUpAxis, jobject jassetmanager);
 
     JNIEXPORT jlong JNICALL
     Java_org_gearvrf_physics_NativePhysics3DLoader_getNextRigidBody(JNIEnv* env, jclass clazz,
@@ -39,7 +39,7 @@ extern "C" {
 
 JNIEXPORT jlong JNICALL
 Java_org_gearvrf_physics_NativePhysics3DLoader_ctor(JNIEnv* env, jclass clazz,
-        jstring fname, jobject jassetmanager)
+        jstring fname, jboolean ignoreUpAxis, jobject jassetmanager)
 {
     const char* cFilename = env->GetStringUTFChars(fname, NULL);
     AAssetManager *assetmgr = AAssetManager_fromJava(env, jassetmanager);
@@ -50,7 +50,7 @@ Java_org_gearvrf_physics_NativePhysics3DLoader_ctor(JNIEnv* env, jclass clazz,
     __android_log_print(ANDROID_LOG_DEBUG, tag, "read %i bytes from asset '%s'", ret, cFilename);
     AAsset_close(file);
 
-    PhysicsLoader *loader = new BulletFileLoader(buf, assetsize);
+    PhysicsLoader *loader = new BulletFileLoader(buf, assetsize, ignoreUpAxis);
     __android_log_print(ANDROID_LOG_DEBUG, tag, "physics file parsed (?!)");
 
     delete[] buf;

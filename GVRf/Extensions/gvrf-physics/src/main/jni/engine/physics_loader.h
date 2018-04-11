@@ -16,7 +16,7 @@ class PhysicsConstraint;
 class PhysicsLoader
 {
 public:
-    PhysicsLoader(char *buffer, size_t length) { }
+    PhysicsLoader(char *buffer, size_t length, bool ignoreUpAxis) { }
     virtual ~PhysicsLoader() { }
 
     virtual PhysicsRigidBody* getNextRigidBody() = 0;

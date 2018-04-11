@@ -20,7 +20,11 @@ public class GVRPhysicsLoader {
     }
 
     public static void loadPhysicsFile(GVRContext gvrContext, String fileName, GVRSceneObject sceneRoot) {
-        long loader = NativePhysics3DLoader.ctor(fileName, gvrContext.getActivity().getAssets());
+        loadPhysicsFile(gvrContext, fileName, false, sceneRoot);
+    }
+
+    public static void loadPhysicsFile(GVRContext gvrContext, String fileName, boolean ignoreUpAxis, GVRSceneObject sceneRoot) {
+        long loader = NativePhysics3DLoader.ctor(fileName, ignoreUpAxis, gvrContext.getActivity().getAssets());
 
         ArrayMap<Long, GVRSceneObject> rbObjects = new ArrayMap<>();
 
@@ -84,7 +88,7 @@ public class GVRPhysicsLoader {
 }
 
 class NativePhysics3DLoader {
-    static native long ctor(String file_name, AssetManager assetManager);
+    static native long ctor(String file_name, boolean ignoreUpAxis, AssetManager assetManager);
 
     static native long getNextRigidBody(long loader);
 

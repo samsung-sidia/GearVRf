@@ -14,7 +14,7 @@ namespace gvr{
 class BulletFileLoader : public PhysicsLoader
 {
 public:
-    BulletFileLoader(char *buffer, size_t length);
+    BulletFileLoader(char *buffer, size_t length, bool ignoreUpAxis);
     virtual ~BulletFileLoader();
 
     virtual PhysicsRigidBody* getNextRigidBody();

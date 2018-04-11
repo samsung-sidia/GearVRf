@@ -204,8 +204,8 @@ static void createBulletConstraints(btBulletWorldImporter *importer, bool needRo
     }
 }
 
-BulletFileLoader::BulletFileLoader(char *buffer, size_t length) :
-    PhysicsLoader(buffer, length), mCurrRigidBody(0), mCurrConstraint(0)
+BulletFileLoader::BulletFileLoader(char *buffer, size_t length, bool ignoreUpAxis) :
+    PhysicsLoader(buffer, length, ignoreUpAxis), mCurrRigidBody(0), mCurrConstraint(0)
 {
     bParse::btBulletFile *bullet_file = new bParse::btBulletFile(buffer, length);
 
@@ -213,7 +213,11 @@ BulletFileLoader::BulletFileLoader(char *buffer, size_t length) :
     mImporter->loadFileFromMemory(bullet_file);
 
     bool needRotate;
-    if (bullet_file->getFlags() & bParse::FD_DOUBLE_PRECISION)
+    if (ignoreUpAxis)
+    {
+        needRotate = false;
+    }
+    else if (bullet_file->getFlags() & bParse::FD_DOUBLE_PRECISION)
     {
         btDynamicsWorldDoubleData* ddata =
                 reinterpret_cast<btDynamicsWorldDoubleData*>(bullet_file->m_dynamicsWorldInfo[0]);
@@ -227,6 +231,8 @@ BulletFileLoader::BulletFileLoader(char *buffer, size_t length) :
         float *gravity = reinterpret_cast<float*>(&fdata->m_gravity);
         needRotate = gravity[2] != 0.f;
     }
+
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "Need rotate? %s", (needRotate ? "Yes" : "No"));
 
     delete bullet_file;
 
