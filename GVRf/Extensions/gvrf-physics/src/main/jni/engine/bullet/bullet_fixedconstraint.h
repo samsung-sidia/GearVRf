@@ -33,6 +33,8 @@ namespace gvr {
     public:
         explicit BulletFixedConstraint(PhysicsRigidBody* rigidBodyB);
 
+        BulletFixedConstraint(btFixedConstraint *constraint);
+
         virtual ~BulletFixedConstraint();
 
         void* getUnderlying() {

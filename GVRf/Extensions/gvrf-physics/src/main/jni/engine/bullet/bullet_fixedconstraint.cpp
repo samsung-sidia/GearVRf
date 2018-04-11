@@ -8,12 +8,22 @@
 
 #include <android/log.h>
 
+static const char tag[] = "BulletFixedConstrN";
+
 namespace gvr {
 
 BulletFixedConstraint::BulletFixedConstraint(PhysicsRigidBody* rigidBodyB) {
     mFixedConstraint = 0;
     mRigidBodyB = reinterpret_cast<BulletRigidBody*>(rigidBodyB);
     mBreakingImpulse = SIMD_INFINITY;
+}
+
+BulletFixedConstraint::BulletFixedConstraint(btFixedConstraint *constraint)
+{
+    mFixedConstraint = constraint;
+    mRigidBodyB = static_cast<BulletRigidBody*>(constraint->getRigidBodyB().getUserPointer());
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "new constraint: %p rbA=%p rbB=%p", this, constraint->getRigidBodyA().getUserPointer(), mRigidBodyB);
+    constraint->setUserConstraintPtr(this);
 }
 
 BulletFixedConstraint::~BulletFixedConstraint() {
@@ -41,8 +51,8 @@ float BulletFixedConstraint::getBreakingImpulse() const {
 }
 
 void BulletFixedConstraint::updateConstructionInfo() {
-    if (mFixedConstraint != 0) {
-        delete (mFixedConstraint);
+    if (mFixedConstraint != nullptr) {
+        return;
     }
     btRigidBody* rbA = ((BulletRigidBody*)this->owner_object()->
             getComponent(COMPONENT_TYPE_PHYSICS_RIGID_BODY))->getRigidBody();

@@ -135,6 +135,34 @@ static void createBulletGenericConstraint(btGeneric6DofConstraint *gen, bool nee
     }
 }
 
+static void createBulletFixedConstraint(btFixedConstraint *fix, bool needRotate)
+{
+    BulletFixedConstraint *bfix = new BulletFixedConstraint(fix);
+
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created fixed constraint");
+
+    if (needRotate)
+    {
+        btTransform tA = fix->getFrameOffsetA();
+        btTransform tB = fix->getFrameOffsetB();
+
+        btTransform t = tA;
+        tA.mult(transformInvIdty, t);
+
+        t = tB;
+        tB.mult(transformInvIdty, t);
+
+        fix->setFrames(tA, tB);
+    }
+}
+
+static void createBulletSliderConstraint(btSliderConstraint *sld)
+{
+    BulletSliderConstraint *bsld = new BulletSliderConstraint(sld);
+
+    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created slider constraint");
+}
+
 static void createBulletConstraints(btBulletWorldImporter *importer, bool needRotate)
 {
     for (int i = 0; i < importer->getNumConstraints(); i++)
@@ -161,8 +189,19 @@ static void createBulletConstraints(btBulletWorldImporter *importer, bool needRo
             // Blender exports generic constraint as generic spring constraint
             createBulletGenericConstraint(static_cast<btGeneric6DofConstraint*>(constraint), needRotate);
         }
+        else if (constraint->getConstraintType() == btTypedConstraintType::FIXED_CONSTRAINT_TYPE ||
+                 constraint->getConstraintType() == btTypedConstraintType::D6_SPRING_2_CONSTRAINT_TYPE)
+        {
+            // btFixedConstraint constraint is derived from btGeneric6DofSpring2Constraint and its
+            // type is set to D6_SPRING_2_CONSTRAINT_TYPE instead of FIXED_CONSTRAINT_TYPE in
+            // Bullet (at least up to) 2.87
+            createBulletFixedConstraint(static_cast<btFixedConstraint*>(constraint), needRotate);
+        }
+        else if (constraint->getConstraintType() == btTypedConstraintType::SLIDER_CONSTRAINT_TYPE)
+        {
+            createBulletSliderConstraint(static_cast<btSliderConstraint*>(constraint));
+        }
     }
-
 }
 
 BulletFileLoader::BulletFileLoader(char *buffer, size_t length) :

@@ -37,6 +37,10 @@ public class GVRSliderConstraint extends GVRConstraint {
         super(gvrContext, Native3DSliderConstraint.ctor(rigidBody.getNative()));
     }
 
+    GVRSliderConstraint(GVRContext gvrContext, long nativeConstraint) {
+        super(gvrContext, nativeConstraint);
+    }
+
     /**
      * Sets the lower limit for rotation.
      *

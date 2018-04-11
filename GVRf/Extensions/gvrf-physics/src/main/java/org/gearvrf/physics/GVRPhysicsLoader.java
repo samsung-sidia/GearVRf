@@ -56,11 +56,13 @@ public class GVRPhysicsLoader {
             GVRConstraint constraint = null;
             if (constraintType == GVRConstraint.fixedConstraintId) {
                 Log.d(TAG, "Is fixed constraint");
+                constraint = new GVRFixedConstraint(gvrContext, nativeConstraint);
             } else if (constraintType == GVRConstraint.point2pointConstraintId) {
                 Log.d(TAG, "Is point-to-point constraint");
                 constraint = new GVRPoint2PointConstraint(gvrContext, nativeConstraint);
             } else if (constraintType == GVRConstraint.sliderConstraintId) {
                 Log.d(TAG, "Is slider constraint");
+                constraint = new GVRSliderConstraint(gvrContext, nativeConstraint);
             } else if (constraintType == GVRConstraint.hingeConstraintId) {
                 Log.d(TAG, "Is hinge constraint");
                 constraint = new GVRHingeConstraint(gvrContext, nativeConstraint);

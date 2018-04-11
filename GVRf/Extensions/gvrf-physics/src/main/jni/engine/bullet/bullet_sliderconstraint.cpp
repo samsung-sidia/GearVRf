@@ -22,6 +22,8 @@
 #include <BulletDynamics/ConstraintSolver/btSliderConstraint.h>
 #include <LinearMath/btTransform.h>
 
+static const char tag[] = "BulletSliderConstrN";
+
 namespace gvr {
 
     BulletSliderConstraint::BulletSliderConstraint(PhysicsRigidBody *rigidBodyB) {
@@ -35,6 +37,14 @@ namespace gvr {
         mUpperAngularLimit = 0.0f;
         mLowerLinearLimit = 1.0f;
         mUpperLinearLimit = -1.0f;
+    }
+
+    BulletSliderConstraint::BulletSliderConstraint(btSliderConstraint *constraint)
+    {
+        mSliderConstraint = constraint;
+        mRigidBodyB = static_cast<BulletRigidBody*>(constraint->getRigidBodyB().getUserPointer());
+        __android_log_print(ANDROID_LOG_DEBUG, tag, "new constraint: %p rbA=%p rbB=%p", this, constraint->getRigidBodyA().getUserPointer(), mRigidBodyB);
+        constraint->setUserConstraintPtr(this);
     }
 
     BulletSliderConstraint::~BulletSliderConstraint() {
@@ -134,8 +144,8 @@ namespace gvr {
     }
 
 void BulletSliderConstraint::updateConstructionInfo() {
-    if (mSliderConstraint != 0) {
-        delete (mSliderConstraint);
+    if (mSliderConstraint != nullptr) {
+        return;
     }
 
     btRigidBody* rbA = ((BulletRigidBody*)this->owner_object()->getComponent(COMPONENT_TYPE_PHYSICS_RIGID_BODY))->getRigidBody();
