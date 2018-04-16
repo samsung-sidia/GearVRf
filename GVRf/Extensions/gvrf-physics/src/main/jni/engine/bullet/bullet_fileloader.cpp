@@ -44,7 +44,6 @@ static void createBulletRigidBodies(btBulletWorldImporter *importer)
         if (nullptr == importer->getNameForPointer(rb))
         {
             // A rigid body has no name.
-            // TODO: check if this body can be safely deleted
             continue;
         }
 
@@ -171,6 +170,18 @@ static void createBulletConstraints(btBulletWorldImporter *importer, bool needRo
 
         __android_log_print(ANDROID_LOG_DEBUG, tag, "new constraint: %p (type=%i)", constraint, (int)constraint->getConstraintType());
 
+        btRigidBody const *rbA = &constraint->getRigidBodyA();
+        btRigidBody const *rbB = &constraint->getRigidBodyB();
+
+        if (rbA->getUserPointer() == nullptr || rbB->getUserPointer() == nullptr)
+        {
+            // This constraint has at least one invalid rigid body and then it must to be ignored
+
+            __android_log_print(ANDROID_LOG_WARN, tag,
+                                "this constraint has invalid rigid body [A=%p B=%p]", rbA, rbB);
+            continue;
+        }
+
         if (constraint->getConstraintType() == btTypedConstraintType::POINT2POINT_CONSTRAINT_TYPE)
         {
             createBulletP2pConstraint(static_cast<btPoint2PointConstraint*>(constraint), needRotate);
@@ -243,6 +254,51 @@ BulletFileLoader::BulletFileLoader(char *buffer, size_t length, bool ignoreUpAxi
 
 BulletFileLoader::~BulletFileLoader()
 {
+    int i;
+
+    for (i = 0; i < mImporter->getNumConstraints(); i++)
+    {
+        btTypedConstraint *constraint = mImporter->getConstraintByIndex(i);
+        PhysicsConstraint *phcons = static_cast<PhysicsConstraint*>(constraint->getUserConstraintPtr());
+        if (nullptr != phcons && ((PhysicsConstraint*)-1) != phcons)
+        {
+            // Constraint is valid, but was it attached?
+            if (nullptr != phcons->owner_object())
+            {
+                continue;
+            }
+            else
+            {
+                __android_log_print(ANDROID_LOG_WARN, tag, "Physical constraint %p will be deleted", phcons);
+                delete phcons;
+            }
+        }
+
+        __android_log_print(ANDROID_LOG_WARN, tag, "Constraint %p will be deleted", constraint);
+        delete constraint;
+    }
+
+    for (i = 0; i < mImporter->getNumRigidBodies(); i++) {
+        btRigidBody *rb = static_cast<btRigidBody*>(mImporter->getRigidBodyByIndex(i));
+        BulletRigidBody *brb = static_cast<BulletRigidBody*>(rb->getUserPointer());
+        if (nullptr != brb)
+        {
+            // Rigid body is valid, but was it attached?
+            if (nullptr != brb->owner_object())
+            {
+                continue;
+            }
+            else
+            {
+                __android_log_print(ANDROID_LOG_WARN, tag, "Physical rigid body %p will be deleted", brb);
+                delete brb;
+            }
+        }
+
+        __android_log_print(ANDROID_LOG_WARN, tag, "Rigid body %p will be deleted", rb);
+        delete rb;
+    }
+
     delete mImporter;
 }
 
@@ -255,15 +311,13 @@ PhysicsRigidBody* BulletFileLoader::getNextRigidBody()
         btRigidBody *rb = static_cast<btRigidBody*>(mImporter->getRigidBodyByIndex(mCurrRigidBody));
         ++mCurrRigidBody;
 
-        // This rigid body has no wrapper and then must be ignored
         if (nullptr != rb->getUserPointer())
         {
             ret = reinterpret_cast<BulletRigidBody*>(rb->getUserPointer());
             __android_log_print(ANDROID_LOG_DEBUG, tag, "Sending rigid body %i [%p %p]",
-                                mCurrConstraint - 1, ret, rb);
+                                mCurrRigidBody - 1, ret, rb);
             break;
         }
-        // TODO: check if an ignored rigid body can be safely deleted
     }
 
     return ret;
@@ -285,7 +339,6 @@ PhysicsConstraint* BulletFileLoader::getNextConstraint()
         btTypedConstraint *constraint = mImporter->getConstraintByIndex(mCurrConstraint);
         ++mCurrConstraint;
 
-        // Will ignore non supported constraints
         if (nullptr != constraint->getUserConstraintPtr() && ((void*)-1) != constraint->getUserConstraintPtr())
         {
             ret = static_cast<PhysicsConstraint *>(constraint->getUserConstraintPtr());
@@ -303,6 +356,13 @@ PhysicsRigidBody* BulletFileLoader::getConstraintBodyA(PhysicsConstraint *constr
     btTypedConstraint *btc = static_cast<btTypedConstraint*>(constraint->getUnderlying());
     btRigidBody *rbA = &btc->getRigidBodyA();
     return static_cast<PhysicsRigidBody*>(rbA->getUserPointer());
+}
+
+PhysicsRigidBody* BulletFileLoader::getConstraintBodyB(PhysicsConstraint *constraint)
+{
+    btTypedConstraint *btc = static_cast<btTypedConstraint*>(constraint->getUnderlying());
+    btRigidBody *rbB = &btc->getRigidBodyB();
+    return static_cast<PhysicsRigidBody*>(rbB->getUserPointer());
 }
 
 }

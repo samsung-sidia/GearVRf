@@ -42,14 +42,16 @@ public class GVRPhysicsLoader {
         }
 
         long nativeConstraint;
+        long nativeRigidBodyB;
         while ((nativeConstraint = NativePhysics3DLoader.getNextConstraint(loader)) != 0) {
             nativeRigidBody = NativePhysics3DLoader.getConstraintBodyA(loader, nativeConstraint);
-            Log.d(TAG, "Found constraint " + nativeConstraint + " bodyA: " + nativeRigidBody);
+            nativeRigidBodyB = NativePhysics3DLoader.getConstraintBodyB(loader, nativeConstraint);
+            Log.d(TAG, "Found constraint " + nativeConstraint + " bodyA: " + nativeRigidBody + " bodyB: " + nativeRigidBodyB);
             GVRSceneObject sceneObject = rbObjects.get(nativeRigidBody);
+            GVRSceneObject sceneObjectB = rbObjects.get(nativeRigidBodyB);
 
-            if (sceneObject == null) {
+            if (sceneObject == null || sceneObjectB == null) {
                 // There is no scene object to own this constraint
-                // TODO: what to do with this constraint?
                 Log.d(TAG, "Did not found scene object for this constraint :(");
                 continue;
             }
@@ -83,12 +85,16 @@ public class GVRPhysicsLoader {
                 Log.d(TAG, "Constraint attached to scene object");
             }
         }
+
+        NativePhysics3DLoader.delete(loader);
     }
 
 }
 
 class NativePhysics3DLoader {
     static native long ctor(String file_name, boolean ignoreUpAxis, AssetManager assetManager);
+
+    static native long delete(long loader);
 
     static native long getNextRigidBody(long loader);
 
@@ -97,4 +103,6 @@ class NativePhysics3DLoader {
     static native long getNextConstraint(long loader);
 
     static native long getConstraintBodyA(long loader, long constraint);
+
+    static native long getConstraintBodyB(long loader, long constraint);
 }

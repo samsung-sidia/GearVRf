@@ -26,6 +26,8 @@ public:
     virtual PhysicsConstraint* getNextConstraint() = 0;
 
     virtual PhysicsRigidBody* getConstraintBodyA(PhysicsConstraint *constraint) = 0;
+
+    virtual PhysicsRigidBody* getConstraintBodyB(PhysicsConstraint *constraint) = 0;
 };
 
 }

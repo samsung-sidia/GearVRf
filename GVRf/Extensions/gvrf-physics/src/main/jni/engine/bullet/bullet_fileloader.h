@@ -17,13 +17,15 @@ public:
     BulletFileLoader(char *buffer, size_t length, bool ignoreUpAxis);
     virtual ~BulletFileLoader();
 
-    virtual PhysicsRigidBody* getNextRigidBody();
+    PhysicsRigidBody* getNextRigidBody();
 
-    virtual const char* getRigidBodyName(PhysicsRigidBody *body) const;
+    const char* getRigidBodyName(PhysicsRigidBody *body) const;
 
-    virtual PhysicsConstraint* getNextConstraint();
+    PhysicsConstraint* getNextConstraint();
 
-    virtual PhysicsRigidBody* getConstraintBodyA(PhysicsConstraint *constraint);
+    PhysicsRigidBody* getConstraintBodyA(PhysicsConstraint *constraint);
+
+    PhysicsRigidBody* getConstraintBodyB(PhysicsConstraint *constraint);
 
 private:
     btBulletWorldImporter *mImporter;

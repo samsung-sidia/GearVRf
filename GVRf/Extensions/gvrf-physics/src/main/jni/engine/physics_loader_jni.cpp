@@ -20,6 +20,9 @@ extern "C" {
     Java_org_gearvrf_physics_NativePhysics3DLoader_ctor(JNIEnv* env, jclass clazz,
             jstring fname, jboolean ignoreUpAxis, jobject jassetmanager);
 
+    JNIEXPORT void JNICALL
+    Java_org_gearvrf_physics_NativePhysics3DLoader_delete(JNIEnv* env, jclass clazz, jlong jloader);
+
     JNIEXPORT jlong JNICALL
     Java_org_gearvrf_physics_NativePhysics3DLoader_getNextRigidBody(JNIEnv* env, jclass clazz,
             jlong jloader);
@@ -34,6 +37,10 @@ extern "C" {
 
     JNIEXPORT jlong JNICALL
     Java_org_gearvrf_physics_NativePhysics3DLoader_getConstraintBodyA(JNIEnv* env, jclass clazz,
+            jlong jloader, jlong jconstraint);
+
+    JNIEXPORT jlong JNICALL
+    Java_org_gearvrf_physics_NativePhysics3DLoader_getConstraintBodyB(JNIEnv* env, jclass clazz,
             jlong jloader, jlong jconstraint);
 }
 
@@ -56,6 +63,14 @@ Java_org_gearvrf_physics_NativePhysics3DLoader_ctor(JNIEnv* env, jclass clazz,
     delete[] buf;
 
     return reinterpret_cast<jlong>(loader);
+}
+
+JNIEXPORT void JNICALL
+Java_org_gearvrf_physics_NativePhysics3DLoader_delete(JNIEnv* env, jclass clazz, jlong jloader)
+{
+    PhysicsLoader *loader = reinterpret_cast<PhysicsLoader*>(jloader);
+
+    delete loader;
 }
 
 JNIEXPORT jlong JNICALL
@@ -96,6 +111,16 @@ Java_org_gearvrf_physics_NativePhysics3DLoader_getConstraintBodyA(JNIEnv* env, j
     PhysicsConstraint *constraint = reinterpret_cast<PhysicsConstraint*>(jconstraint);
 
     return reinterpret_cast<jlong >(loader->getConstraintBodyA(constraint));
+}
+
+JNIEXPORT jlong JNICALL
+Java_org_gearvrf_physics_NativePhysics3DLoader_getConstraintBodyB(JNIEnv* env, jclass clazz,
+                                                                  jlong jloader, jlong jconstraint)
+{
+    PhysicsLoader *loader = reinterpret_cast<PhysicsLoader*>(jloader);
+    PhysicsConstraint *constraint = reinterpret_cast<PhysicsConstraint*>(jconstraint);
+
+    return reinterpret_cast<jlong >(loader->getConstraintBodyB(constraint));
 }
 
 }
