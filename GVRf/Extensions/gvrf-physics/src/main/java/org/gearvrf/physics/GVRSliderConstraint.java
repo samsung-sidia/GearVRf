@@ -37,6 +37,7 @@ public class GVRSliderConstraint extends GVRConstraint {
         super(gvrContext, Native3DSliderConstraint.ctor(rigidBody.getNative()));
     }
 
+    /** Used only by {@link GVRPhysicsLoader} */
     GVRSliderConstraint(GVRContext gvrContext, long nativeConstraint) {
         super(gvrContext, nativeConstraint);
     }

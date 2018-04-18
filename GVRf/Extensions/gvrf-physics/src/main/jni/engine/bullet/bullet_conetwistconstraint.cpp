@@ -45,7 +45,6 @@ namespace gvr {
     {
         mConeTwistConstraint = constraint;
         mRigidBodyB = static_cast<BulletRigidBody*>(constraint->getRigidBodyB().getUserPointer());
-        __android_log_print(ANDROID_LOG_DEBUG, tag, "new constraint: %p rbA=%p rbB=%p", this, constraint->getRigidBodyA().getUserPointer(), mRigidBodyB);
         constraint->setUserConstraintPtr(this);
     }
 

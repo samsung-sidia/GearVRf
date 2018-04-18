@@ -43,6 +43,7 @@ public class GVRHingeConstraint extends GVRConstraint {
                 axisInA, axisInB));
     }
 
+    /** Used only by {@link GVRPhysicsLoader} */
     GVRHingeConstraint(GVRContext gvrContext, long nativeConstraint) {
         super(gvrContext, nativeConstraint);
     }

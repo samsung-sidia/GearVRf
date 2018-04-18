@@ -48,8 +48,6 @@ BulletRigidBody::BulletRigidBody(btRigidBody *rigidBody)
 {
     initialize();
     mConstructionInfo.m_mass = rigidBody->isStaticObject() ? 0.f : 1.f / rigidBody->getInvMass();
-
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "new rigid body: %p", this);
 }
 
 BulletRigidBody::~BulletRigidBody() {

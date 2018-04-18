@@ -33,6 +33,7 @@ public class GVRFixedConstraint extends GVRConstraint {
         super(gvrContext, Native3DFixedConstraint.ctor(rigidBodyB.getNative()));
     }
 
+    /** Used only by {@link GVRPhysicsLoader} */
     GVRFixedConstraint(GVRContext gvrContext, long nativeConstraint) {
         super(gvrContext, nativeConstraint);
     }

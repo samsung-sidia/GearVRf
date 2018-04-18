@@ -1,6 +1,17 @@
-//
-// Created by c.bozzetto on 3/19/2018.
-//
+/* Copyright 2015 Samsung Electronics Co., LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <Android/asset_manager.h>
 
@@ -57,8 +68,6 @@ static void createBulletP2pConstraint(btPoint2PointConstraint *p2p, bool needRot
     // Constraint userPointer will point to newly created BulletPoint2PointConstraint
     BulletPoint2PointConstraint *bp2p = new BulletPoint2PointConstraint(p2p);
 
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created point-to-point constraint");
-
     if (needRotate)
     {
         // Adapting pivot to GVRf coordinates system
@@ -80,8 +89,6 @@ static void createBulletHingeConstraint(btHingeConstraint *hg, bool needRotate)
 {
     BulletHingeConstraint *bhg = new BulletHingeConstraint(hg);
 
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created hinge constraint");
-
     if (needRotate)
     {
         btTransform t = hg->getAFrame();
@@ -95,8 +102,6 @@ static void createBulletHingeConstraint(btHingeConstraint *hg, bool needRotate)
 static void createBulletConeTwistConstraint(btConeTwistConstraint *ct, bool needRotate)
 {
     BulletConeTwistConstraint *bct = new BulletConeTwistConstraint(ct);
-
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created cone twist constraint");
 
     if (needRotate)
     {
@@ -117,8 +122,6 @@ static void createBulletGenericConstraint(btGeneric6DofConstraint *gen, bool nee
 {
     BulletGeneric6dofConstraint *bct = new BulletGeneric6dofConstraint(gen);
 
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created generic 6DoF constraint");
-
     if (needRotate)
     {
         btTransform tA = gen->getFrameOffsetA();
@@ -138,8 +141,6 @@ static void createBulletFixedConstraint(btFixedConstraint *fix, bool needRotate)
 {
     BulletFixedConstraint *bfix = new BulletFixedConstraint(fix);
 
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created fixed constraint");
-
     if (needRotate)
     {
         btTransform tA = fix->getFrameOffsetA();
@@ -158,8 +159,6 @@ static void createBulletFixedConstraint(btFixedConstraint *fix, bool needRotate)
 static void createBulletSliderConstraint(btSliderConstraint *sld)
 {
     BulletSliderConstraint *bsld = new BulletSliderConstraint(sld);
-
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "Created slider constraint");
 }
 
 static void createBulletConstraints(btBulletWorldImporter *importer, bool needRotate)
@@ -168,17 +167,12 @@ static void createBulletConstraints(btBulletWorldImporter *importer, bool needRo
     {
         btTypedConstraint *constraint = importer->getConstraintByIndex(i);
 
-        __android_log_print(ANDROID_LOG_DEBUG, tag, "new constraint: %p (type=%i)", constraint, (int)constraint->getConstraintType());
-
         btRigidBody const *rbA = &constraint->getRigidBodyA();
         btRigidBody const *rbB = &constraint->getRigidBodyB();
 
         if (rbA->getUserPointer() == nullptr || rbB->getUserPointer() == nullptr)
         {
             // This constraint has at least one invalid rigid body and then it must to be ignored
-
-            __android_log_print(ANDROID_LOG_WARN, tag,
-                                "this constraint has invalid rigid body [A=%p B=%p]", rbA, rbB);
             continue;
         }
 
@@ -243,8 +237,6 @@ BulletFileLoader::BulletFileLoader(char *buffer, size_t length, bool ignoreUpAxi
         needRotate = gravity[2] != 0.f;
     }
 
-    __android_log_print(ANDROID_LOG_DEBUG, tag, "Need rotate? %s", (needRotate ? "Yes" : "No"));
-
     delete bullet_file;
 
     createBulletRigidBodies(mImporter);
@@ -269,12 +261,10 @@ BulletFileLoader::~BulletFileLoader()
             }
             else
             {
-                __android_log_print(ANDROID_LOG_WARN, tag, "Physical constraint %p will be deleted", phcons);
                 delete phcons;
             }
         }
 
-        __android_log_print(ANDROID_LOG_WARN, tag, "Constraint %p will be deleted", constraint);
         delete constraint;
     }
 
@@ -290,12 +280,10 @@ BulletFileLoader::~BulletFileLoader()
             }
             else
             {
-                __android_log_print(ANDROID_LOG_WARN, tag, "Physical rigid body %p will be deleted", brb);
                 delete brb;
             }
         }
 
-        __android_log_print(ANDROID_LOG_WARN, tag, "Rigid body %p will be deleted", rb);
         delete rb;
     }
 
@@ -314,8 +302,6 @@ PhysicsRigidBody* BulletFileLoader::getNextRigidBody()
         if (nullptr != rb->getUserPointer())
         {
             ret = reinterpret_cast<BulletRigidBody*>(rb->getUserPointer());
-            __android_log_print(ANDROID_LOG_DEBUG, tag, "Sending rigid body %i [%p %p]",
-                                mCurrRigidBody - 1, ret, rb);
             break;
         }
     }
@@ -342,8 +328,6 @@ PhysicsConstraint* BulletFileLoader::getNextConstraint()
         if (nullptr != constraint->getUserConstraintPtr() && ((void*)-1) != constraint->getUserConstraintPtr())
         {
             ret = static_cast<PhysicsConstraint *>(constraint->getUserConstraintPtr());
-            __android_log_print(ANDROID_LOG_DEBUG, tag, "Sending constraint %i [%p / %p]",
-                                mCurrConstraint - 1, ret, constraint);
             break;
         }
     }
