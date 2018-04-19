@@ -264,8 +264,10 @@ BulletFileLoader::~BulletFileLoader()
                 delete phcons;
             }
         }
-
-        delete constraint;
+        else
+        {
+            delete constraint;
+        }
     }
 
     for (i = 0; i < mImporter->getNumRigidBodies(); i++) {
@@ -283,8 +285,10 @@ BulletFileLoader::~BulletFileLoader()
                 delete brb;
             }
         }
-
-        delete rb;
+        else
+        {
+            delete rb;
+        }
     }
 
     delete mImporter;
