@@ -20,11 +20,11 @@ import android.util.ArrayMap;
 import android.util.Log;
 
 import org.gearvrf.GVRContext;
+import org.gearvrf.GVRScene;
 import org.gearvrf.GVRSceneObject;
 
 public class GVRPhysicsLoader {
-
-    static private String TAG = GVRPhysicsLoader.class.getSimpleName();
+    static private final String TAG = GVRPhysicsLoader.class.getSimpleName();
 
     static {
         System.loadLibrary("gvrf-physics");
@@ -35,10 +35,10 @@ public class GVRPhysicsLoader {
      *
      * @param gvrContext The context of the app.
      * @param fileName Physics settings file name.
-     * @param sceneRoot The root object of the scene.
+     * @param scene The scene containing the objects to attach physics components.
      */
-    public static void loadPhysicsFile(GVRContext gvrContext, String fileName, GVRSceneObject sceneRoot) {
-        loadPhysicsFile(gvrContext, fileName, false, sceneRoot);
+    public static void loadPhysicsFile(GVRContext gvrContext, String fileName, GVRScene scene) {
+        loadPhysicsFile(gvrContext, fileName, false, scene);
     }
 
     /**
@@ -49,18 +49,21 @@ public class GVRPhysicsLoader {
      * @param gvrContext The context of the app.
      * @param fileName Physics settings file name.
      * @param ignoreUpAxis Set to true if up-axis information from file must be ignored.
-     * @param sceneRoot The root object of the scene.
+     * @param scene The scene containing the objects to attach physics components.
      */
-    public static void loadPhysicsFile(GVRContext gvrContext, String fileName, boolean ignoreUpAxis, GVRSceneObject sceneRoot) {
+    public static void loadPhysicsFile(GVRContext gvrContext, String fileName, boolean ignoreUpAxis, GVRScene scene) {
         long loader = NativePhysics3DLoader.ctor(fileName, ignoreUpAxis, gvrContext.getActivity().getAssets());
 
+        GVRSceneObject sceneRoot = scene.getRoot();
         ArrayMap<Long, GVRSceneObject> rbObjects = new ArrayMap<>();
 
         long nativeRigidBody;
         while ((nativeRigidBody = NativePhysics3DLoader.getNextRigidBody(loader)) != 0) {
             String name = NativePhysics3DLoader.getRigidBodyName(loader, nativeRigidBody);
             GVRSceneObject sceneObject = sceneRoot.getSceneObjectByName(name);
-            if (sceneObject != null) {
+            if (sceneObject == null) {
+                Log.d(TAG, "Did not found scene object for rigid body '" + name + "'");
+            } else {
                 GVRRigidBody rigidBody = new GVRRigidBody(gvrContext, nativeRigidBody);
                 sceneObject.attachComponent(rigidBody);
                 rbObjects.put(nativeRigidBody, sceneObject);
@@ -77,6 +80,7 @@ public class GVRPhysicsLoader {
 
             if (sceneObject == null || sceneObjectB == null) {
                 // There is no scene object to own this constraint
+                Log.d(TAG, "Found constraint with missing rigid body: will ignore");
                 continue;
             }
 
