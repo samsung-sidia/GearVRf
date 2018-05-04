@@ -100,6 +100,9 @@ public class GVRPhysicsLoader {
             rbObjects.put(nativeRigidBody, sceneObject);
         }
 
+
+        GVRWorld world = (GVRWorld)sceneRoot.getComponent(GVRWorld.getComponentType());
+
         long nativeConstraint;
         long nativeRigidBodyB;
         while ((nativeConstraint = NativePhysics3DLoader.getNextConstraint(loader)) != 0) {
@@ -131,7 +134,10 @@ public class GVRPhysicsLoader {
             }
 
             if (constraint != null) {
-                sceneObject.attachComponent(constraint);
+                // Mark this constraint so it will not be deleted
+                constraint.mark();
+
+                world.addConstraint(constraint);
             }
         }
 

@@ -20,6 +20,8 @@ import org.gearvrf.GVRContext;
 import org.gearvrf.GVRRenderData;
 import org.gearvrf.GVRSceneObject;
 
+import java.util.ArrayList;
+
 /**
  * Represents a rigid body that can be static or dynamic. You can set a mass and apply some
  * physics forces.

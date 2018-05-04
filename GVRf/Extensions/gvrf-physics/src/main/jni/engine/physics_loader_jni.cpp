@@ -66,11 +66,11 @@ Java_org_gearvrf_physics_NativePhysics3DLoader_ctor(JNIEnv* env, jclass clazz,
     }
 
     char *buffer = new char[len];
-    memcpy(buffer, data, len);
+    memcpy(buffer, data, (size_t)len);
 
     env->ReleaseByteArrayElements(byteArr, data, JNI_ABORT);
 
-    PhysicsLoader *loader = new BulletFileLoader(buffer, len, ignoreUpAxis);
+    PhysicsLoader *loader = new BulletFileLoader(buffer, (size_t)len, ignoreUpAxis);
 
     delete[] buffer;
 

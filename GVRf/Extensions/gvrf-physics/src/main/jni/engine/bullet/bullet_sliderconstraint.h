@@ -33,7 +33,7 @@ namespace gvr {
     class BulletSliderConstraint : public PhysicsSliderConstraint,
                                           BulletObject {
     public:
-        explicit BulletSliderConstraint(PhysicsRigidBody *rigidBodyB);
+        explicit BulletSliderConstraint(PhysicsRigidBody *rigidBodyA, PhysicsRigidBody *rigidBodyB);
 
         BulletSliderConstraint(btSliderConstraint *constraint);
 
@@ -61,17 +61,8 @@ namespace gvr {
 
         void *getUnderlying() { return mSliderConstraint; }
 
-        void updateConstructionInfo();
-
     private:
         btSliderConstraint *mSliderConstraint;
-        BulletRigidBody *mRigidBodyB;
-
-        float mBreakingImpulse;
-        float mLowerAngularLimit;
-        float mUpperAngularLimit;
-        float mLowerLinearLimit;
-        float mUpperLinearLimit;
     };
 
 }

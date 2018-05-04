@@ -43,7 +43,8 @@ public class GVRWorld extends GVRComponent {
         System.loadLibrary("gvrf-physics");
     }
 
-    private final LongSparseArray<GVRRigidBody> mRigidBodies = new LongSparseArray<GVRRigidBody>();
+    private final LongSparseArray<GVRRigidBody> mRigidBodies = new LongSparseArray<>();
+    private final LongSparseArray<GVRConstraint> mConstraints = new LongSparseArray<>();
     private final GVRCollisionMatrix mCollisionMatrix;
 
     /**
@@ -104,7 +105,13 @@ public class GVRWorld extends GVRComponent {
         mPhysicsContext.runOnPhysicsThread(new Runnable() {
             @Override
             public void run() {
+                if (contains(gvrConstraint)) {
+                    return;
+                }
+
                 NativePhysics3DWorld.addConstraint(getNative(), gvrConstraint.getNative());
+
+                mConstraints.put(gvrConstraint.getNative(), gvrConstraint);
             }
         });
     }
@@ -118,7 +125,10 @@ public class GVRWorld extends GVRComponent {
         mPhysicsContext.runOnPhysicsThread(new Runnable() {
             @Override
             public void run() {
-                NativePhysics3DWorld.removeConstraint(getNative(), gvrConstraint.getNative());
+                if (contains(gvrConstraint)) {
+                    NativePhysics3DWorld.removeConstraint(getNative(), gvrConstraint.getNative());
+                    mConstraints.remove(gvrConstraint.getNative());
+                }
             }
         });
     }
@@ -131,6 +141,10 @@ public class GVRWorld extends GVRComponent {
      */
     public boolean contains(GVRRigidBody rigidBody) {
         return mRigidBodies.get(rigidBody.getNative()) != null;
+    }
+
+    public boolean contains(GVRConstraint constraint) {
+        return mConstraints.get(constraint.getNative()) != null;
     }
 
     /**

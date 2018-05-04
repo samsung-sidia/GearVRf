@@ -16,6 +16,7 @@
 package org.gearvrf.physics;
 
 import org.gearvrf.GVRContext;
+import org.gearvrf.GVRHybridObject;
 
 import java.util.List;
 
@@ -23,11 +24,10 @@ import java.util.List;
  * Base class to represent a constraint for the movement of two
  * {@linkplain GVRRigidBody rigid bodies}.
  * <p>
- * After created anf fully configured a constraint must be attached to a
- * {@linkplain org.gearvrf.GVRSceneObject scene object} containing a rigid body that will become
- * the owner of this constraint (body A).
+ * After created anf fully configured a constraint must be
+ * {@linkplain GVRWorld#addConstraint(GVRConstraint)} added to the world.
  */
-abstract class GVRConstraint extends GVRPhysicsWorldObject {
+abstract class GVRConstraint extends GVRHybridObject {
 
     static final int fixedConstraintId = 1;
     static final int point2pointConstraintId = 2;
@@ -42,20 +42,6 @@ abstract class GVRConstraint extends GVRPhysicsWorldObject {
 
     protected GVRConstraint(GVRContext gvrContext, long nativePointer, List<NativeCleanupHandler> cleanupHandlers) {
         super(gvrContext, nativePointer, cleanupHandlers);
-    }
-
-    @Override
-    protected void addToWorld(GVRWorld world) {
-        if (world != null) {
-            world.addConstraint(this);
-        }
-    }
-
-    @Override
-    protected void removeFromWorld(GVRWorld world) {
-        if (world != null) {
-            world.removeConstraint(this);
-        }
     }
 
     /**
@@ -76,17 +62,18 @@ abstract class GVRConstraint extends GVRPhysicsWorldObject {
         return Native3DConstraint.getBreakingImpulse(getNative());
     }
 
-    static public long getComponentType() {
-        return Native3DConstraint.getComponentType();
+    /** Used only by {@link GVRPhysicsLoader} to avoid the constraint being deleted */
+    void mark() {
+        Native3DConstraint.mark(getNative());
     }
 }
 
 class Native3DConstraint {
-    static native long getComponentType();
-
     static native int getConstraintType(long nativeConstraint);
 
     static native void setBreakingImpulse(long nativeConstraint, float impulse);
 
     static native float getBreakingImpulse(long nativeConstraint);
+
+    static native void mark(long nativeConstraint);
 }

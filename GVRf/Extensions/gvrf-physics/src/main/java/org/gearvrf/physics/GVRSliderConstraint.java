@@ -31,10 +31,13 @@ public class GVRSliderConstraint extends GVRConstraint {
      * Constructs a new instance of a slider constraint.
      *
      * @param gvrContext the context of the app
-     * @param rigidBody the second rigid body (not the owner) in this constraint.
+     * @param rigidBodyA the first rigid body in this constraint.
+     * @param rigidBodyB the second rigid body in this constraint.
      */
-    public GVRSliderConstraint(GVRContext gvrContext, GVRRigidBody rigidBody) {
-        super(gvrContext, Native3DSliderConstraint.ctor(rigidBody.getNative()));
+    public GVRSliderConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA,
+                               GVRRigidBody rigidBodyB) {
+        super(gvrContext,
+                Native3DSliderConstraint.ctor(rigidBodyA.getNative(), rigidBodyB.getNative()));
     }
 
     /** Used only by {@link GVRPhysicsLoader} */
@@ -117,7 +120,7 @@ public class GVRSliderConstraint extends GVRConstraint {
 
 
 class Native3DSliderConstraint {
-    static native long ctor(long rbB);
+    static native long ctor(long rbA, long rbB);
 
     static native void setAngularLowerLimit(long nativeConstraint, float limit);
 

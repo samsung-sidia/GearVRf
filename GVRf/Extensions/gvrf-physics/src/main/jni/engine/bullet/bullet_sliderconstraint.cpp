@@ -22,145 +22,82 @@
 #include <BulletDynamics/ConstraintSolver/btSliderConstraint.h>
 #include <LinearMath/btTransform.h>
 
-static const char tag[] = "BulletSliderConstrN";
+static const char tag[] = "BulletSliderConstr";
 
 namespace gvr {
 
-    BulletSliderConstraint::BulletSliderConstraint(PhysicsRigidBody *rigidBodyB) {
-        mRigidBodyB = reinterpret_cast<BulletRigidBody*>(rigidBodyB);
-        mSliderConstraint = 0;
+    BulletSliderConstraint::BulletSliderConstraint(PhysicsRigidBody *rigidBodyA,
+            PhysicsRigidBody *rigidBodyB)
+    {
+        btRigidBody* rbA = reinterpret_cast<BulletRigidBody*>(rigidBodyA)->getRigidBody();
+        btRigidBody* rbB = reinterpret_cast<BulletRigidBody*>(rigidBodyB)->getRigidBody();
 
-        mBreakingImpulse = SIMD_INFINITY;
+        // FIXME: this only works if both bodies have same Y and Z coordinates
+        btTransform frameInA, frameInB;
+        frameInA = btTransform::getIdentity();
+        frameInB = btTransform::getIdentity();
 
-        // Default values from btSliderConstraint
-        mLowerAngularLimit = 0.0f;
-        mUpperAngularLimit = 0.0f;
-        mLowerLinearLimit = 1.0f;
-        mUpperLinearLimit = -1.0f;
+        mSliderConstraint = new btSliderConstraint(*rbA, *rbB, frameInA, frameInB, true);
     }
 
     BulletSliderConstraint::BulletSliderConstraint(btSliderConstraint *constraint)
     {
         mSliderConstraint = constraint;
-        mRigidBodyB = static_cast<BulletRigidBody*>(constraint->getRigidBodyB().getUserPointer());
         constraint->setUserConstraintPtr(this);
     }
 
-    BulletSliderConstraint::~BulletSliderConstraint() {
-        if (0 != mSliderConstraint) {
-            delete mSliderConstraint;
-        }
+    BulletSliderConstraint::~BulletSliderConstraint()
+    {
+        delete mSliderConstraint;
     }
 
-    void BulletSliderConstraint::setAngularLowerLimit(float limit) {
-        if (0 != mSliderConstraint) {
-            mSliderConstraint->setLowerAngLimit(limit);
-        }
-        else {
-            mLowerAngularLimit = limit;
-        }
+    void BulletSliderConstraint::setAngularLowerLimit(float limit)
+    {
+        mSliderConstraint->setLowerAngLimit(limit);
     }
 
-    float BulletSliderConstraint::getAngularLowerLimit() const {
-        if (0 != mSliderConstraint) {
-            return mSliderConstraint->getLowerAngLimit();
-        }
-        else {
-            return mLowerAngularLimit;
-        }
+    float BulletSliderConstraint::getAngularLowerLimit() const
+    {
+        return mSliderConstraint->getLowerAngLimit();
     }
 
-    void BulletSliderConstraint::setAngularUpperLimit(float limit) {
-        if (0 != mSliderConstraint) {
-            mSliderConstraint->setUpperAngLimit(limit);
-        }
-        else {
-            mUpperAngularLimit = limit;
-        }
+    void BulletSliderConstraint::setAngularUpperLimit(float limit)
+    {
+        mSliderConstraint->setUpperAngLimit(limit);
     }
 
-    float BulletSliderConstraint::getAngularUpperLimit() const {
-        if (0 != mSliderConstraint) {
-            return mSliderConstraint->getUpperAngLimit();
-        }
-        else {
-            return mUpperAngularLimit;
-        }
+    float BulletSliderConstraint::getAngularUpperLimit() const
+    {
+        return mSliderConstraint->getUpperAngLimit();
     }
 
-    void BulletSliderConstraint::setLinearLowerLimit(float limit) {
-        if (0 != mSliderConstraint) {
-            mSliderConstraint->setLowerLinLimit(limit);
-        }
-        else {
-            mLowerLinearLimit = limit;
-        }
+    void BulletSliderConstraint::setLinearLowerLimit(float limit)
+    {
+        mSliderConstraint->setLowerLinLimit(limit);
     }
 
-    float BulletSliderConstraint::getLinearLowerLimit() const {
-        if (0 != mSliderConstraint) {
-            return mSliderConstraint->getLowerLinLimit();
-        }
-        else {
-            return mLowerLinearLimit;
-        }
+    float BulletSliderConstraint::getLinearLowerLimit() const
+    {
+        return mSliderConstraint->getLowerLinLimit();
     }
 
-    void BulletSliderConstraint::setLinearUpperLimit(float limit) {
-        if (0 != mSliderConstraint) {
-            mSliderConstraint->setUpperLinLimit(limit);
-        }
-        else {
-            mUpperLinearLimit = limit;
-        }
+    void BulletSliderConstraint::setLinearUpperLimit(float limit)
+    {
+        mSliderConstraint->setUpperLinLimit(limit);
     }
 
-    void BulletSliderConstraint::setBreakingImpulse(float impulse) {
-        if (0 != mSliderConstraint) {
-            mSliderConstraint->setBreakingImpulseThreshold(impulse);
-        }
-        else {
-            mBreakingImpulse = impulse;
-        }
+    void BulletSliderConstraint::setBreakingImpulse(float impulse)
+    {
+        mSliderConstraint->setBreakingImpulseThreshold(impulse);
     }
 
-    float BulletSliderConstraint::getBreakingImpulse() const {
-        if (0 != mSliderConstraint) {
-            return mSliderConstraint->getBreakingImpulseThreshold();
-        }
-        else {
-            return mBreakingImpulse;
-        }
+    float BulletSliderConstraint::getBreakingImpulse() const
+    {
+        return mSliderConstraint->getBreakingImpulseThreshold();
     }
 
-    float BulletSliderConstraint::getLinearUpperLimit() const {
-        if (0 != mSliderConstraint) {
-            return mSliderConstraint->getUpperLinLimit();
-        }
-        else {
-            return mUpperLinearLimit;
-        }
+    float BulletSliderConstraint::getLinearUpperLimit() const
+    {
+        return mSliderConstraint->getUpperLinLimit();
     }
-
-void BulletSliderConstraint::updateConstructionInfo() {
-    if (mSliderConstraint != nullptr) {
-        return;
-    }
-
-    btRigidBody* rbA = ((BulletRigidBody*)this->owner_object()->getComponent(COMPONENT_TYPE_PHYSICS_RIGID_BODY))->getRigidBody();
-
-    btTransform frameInA, frameInB;
-    frameInA = btTransform::getIdentity();
-    frameInB = btTransform::getIdentity();
-
-    mSliderConstraint = new btSliderConstraint(*rbA, *mRigidBodyB->getRigidBody(), frameInA,
-                                               frameInB, true);
-
-    mSliderConstraint->setLowerAngLimit(mLowerAngularLimit);
-    mSliderConstraint->setUpperAngLimit(mUpperAngularLimit);
-    mSliderConstraint->setLowerLinLimit(mLowerLinearLimit);
-    mSliderConstraint->setUpperLinLimit(mUpperLinearLimit);
-    mSliderConstraint->setBreakingImpulseThreshold(mBreakingImpulse);
-}
-
 }

@@ -31,16 +31,18 @@ public class GVRHingeConstraint extends GVRConstraint {
      * Constructs a new instance of hinge constraint.
      *
      * @param gvrContext the context of the app
-     * @param rigidBodyB the second rigid body (not the owner) in this constraint
+     * @param rigidBodyA the first rigid body in this constraint
+     * @param rigidBodyB the second rigid body in this constraint
      * @param pivotInA the pivot point related to body A (the owner)
      * @param pivotInB the pivot point related to body B
      * @param axisInA the axis around which body A can rotate
      * @param axisInB the axis around which body B can rotate
      */
-    public GVRHingeConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyB, float pivotInA[],
-                                 float pivotInB[], float axisInA[], float axisInB[]) {
-        super(gvrContext, Native3DHingeConstraint.ctor(rigidBodyB.getNative(), pivotInA, pivotInB,
-                axisInA, axisInB));
+    public GVRHingeConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA,
+                              GVRRigidBody rigidBodyB, float pivotInA[], float pivotInB[],
+                              float axisInA[], float axisInB[]) {
+        super(gvrContext, Native3DHingeConstraint.ctor(rigidBodyA.getNative(),
+                rigidBodyB.getNative(), pivotInA, pivotInB, axisInA, axisInB));
     }
 
     /** Used only by {@link GVRPhysicsLoader} */
@@ -79,7 +81,7 @@ public class GVRHingeConstraint extends GVRConstraint {
 }
 
 class Native3DHingeConstraint {
-    static native long ctor(long rbB, float pivotInA[], float pivotInB[], float axisInA[],
+    static native long ctor(long rbA, long rbB, float pivotInA[], float pivotInB[], float axisInA[],
                             float axisInB[]);
 
     static native void setLimits(long nativeConstraint, float lower, float upper);
