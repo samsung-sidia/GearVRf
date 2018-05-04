@@ -110,7 +110,9 @@ class FileBrowserView extends BaseView implements OnClickListener {
         baseDir = DEFAULT_DIRECTORY + "/" + defaultDir;
         path = baseDir;
         File file = new File(path);
-        file.mkdir();
+        if (!file.exists() && !file.mkdirs()) {
+            throw new IllegalStateException("Couldn't create dir: " + file);
+        }
         List<String> filesAtPath = getFilesAtPath(path);
         fileAdapter.clear();
         fileAdapter.addAll(filesAtPath);
