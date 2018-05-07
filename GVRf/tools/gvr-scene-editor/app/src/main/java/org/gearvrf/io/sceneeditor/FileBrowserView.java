@@ -48,15 +48,6 @@ class FileBrowserView extends BaseView implements OnClickListener {
     private SceneFileFilter filenameFilter;
     private ArrayAdapter fileAdapter;
 
-
-    private AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener()
-    {
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-        {
-            FileBrowserView.this.onItemClick(parent, view, position, id);
-        }
-    };
-
     public interface FileViewListener extends WindowChangeListener {
         void onFileSelected(String modelFileName);
     }
@@ -76,7 +67,12 @@ class FileBrowserView extends BaseView implements OnClickListener {
         listView.setVisibility(View.VISIBLE);
         tvTitle = (TextView) view.findViewById(R.id.tvTitle);
         bDone = (Button) view.findViewById(R.id.bDone);
-        listView.setOnItemClickListener(itemClickListener);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                FileBrowserView.this.onItemClick(parent, view, position, id);
+            }
+        });
         fileAdapter = new ArrayAdapter(scene.getGVRContext().getActivity(), android.R.layout.simple_list_item_2,
                 android.R.id.text1, new ArrayList<String>());
         listView.setAdapter(fileAdapter);
