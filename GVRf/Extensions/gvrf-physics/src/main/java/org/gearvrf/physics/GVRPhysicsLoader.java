@@ -19,7 +19,9 @@ import android.util.ArrayMap;
 import android.util.Log;
 
 import org.gearvrf.GVRAndroidResource;
+import org.gearvrf.GVRCollider;
 import org.gearvrf.GVRContext;
+import org.gearvrf.GVRMeshCollider;
 import org.gearvrf.GVRResourceVolume;
 import org.gearvrf.GVRScene;
 import org.gearvrf.GVRSceneObject;
@@ -85,11 +87,17 @@ public class GVRPhysicsLoader {
             GVRSceneObject sceneObject = sceneRoot.getSceneObjectByName(name);
             if (sceneObject == null) {
                 Log.d(TAG, "Did not found scene object for rigid body '" + name + "'");
-            } else {
-                GVRRigidBody rigidBody = new GVRRigidBody(gvrContext, nativeRigidBody);
-                sceneObject.attachComponent(rigidBody);
-                rbObjects.put(nativeRigidBody, sceneObject);
+                continue;
             }
+
+            if (sceneObject.getComponent(GVRCollider.getComponentType()) == null) {
+                // Set mesh collider as default.
+                sceneObject.attachComponent(new GVRMeshCollider(gvrContext, true));
+            }
+
+            GVRRigidBody rigidBody = new GVRRigidBody(gvrContext, nativeRigidBody);
+            sceneObject.attachComponent(rigidBody);
+            rbObjects.put(nativeRigidBody, sceneObject);
         }
 
         long nativeConstraint;
