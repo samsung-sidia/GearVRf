@@ -58,7 +58,8 @@ public class GVRPhysicsLoader {
      * @param ignoreUpAxis Set to true if up-axis information from file must be ignored.
      * @param scene The scene containing the objects to attach physics components.
      */
-    public static void loadPhysicsFile(GVRContext gvrContext, String fileName, boolean ignoreUpAxis, GVRScene scene) {
+    public static void loadPhysicsFile(GVRContext gvrContext, String fileName, boolean ignoreUpAxis,
+                                       GVRScene scene) {
         byte[] inputData = null;
         try {
             inputData = toByteArray(toAndroidResource(gvrContext, fileName));
@@ -100,9 +101,6 @@ public class GVRPhysicsLoader {
             rbObjects.put(nativeRigidBody, sceneObject);
         }
 
-
-        GVRWorld world = (GVRWorld)sceneRoot.getComponent(GVRWorld.getComponentType());
-
         long nativeConstraint;
         long nativeRigidBodyB;
         while ((nativeConstraint = NativePhysics3DLoader.getNextConstraint(loader)) != 0) {
@@ -117,27 +115,27 @@ public class GVRPhysicsLoader {
                 continue;
             }
 
+            GVRRigidBody rbA =(GVRRigidBody)sceneObject.getComponent(GVRRigidBody.getComponentType());
+            GVRRigidBody rbB =(GVRRigidBody)sceneObjectB.getComponent(GVRRigidBody.getComponentType());
             int constraintType = Native3DConstraint.getConstraintType(nativeConstraint);
             GVRConstraint constraint = null;
             if (constraintType == GVRConstraint.fixedConstraintId) {
-                constraint = new GVRFixedConstraint(gvrContext, nativeConstraint);
+                constraint = new GVRFixedConstraint(gvrContext, rbA, rbB, nativeConstraint);
             } else if (constraintType == GVRConstraint.point2pointConstraintId) {
-                constraint = new GVRPoint2PointConstraint(gvrContext, nativeConstraint);
+                constraint = new GVRPoint2PointConstraint(gvrContext, rbA, rbB, nativeConstraint);
             } else if (constraintType == GVRConstraint.sliderConstraintId) {
-                constraint = new GVRSliderConstraint(gvrContext, nativeConstraint);
+                constraint = new GVRSliderConstraint(gvrContext, rbA, rbB, nativeConstraint);
             } else if (constraintType == GVRConstraint.hingeConstraintId) {
-                constraint = new GVRHingeConstraint(gvrContext, nativeConstraint);
+                constraint = new GVRHingeConstraint(gvrContext, rbA, rbB, nativeConstraint);
             } else if (constraintType == GVRConstraint.coneTwistConstraintId) {
-                constraint = new GVRConeTwistConstraint(gvrContext, nativeConstraint);
+                constraint = new GVRConeTwistConstraint(gvrContext, rbA, rbB, nativeConstraint);
             } else if (constraintType == GVRConstraint.genericConstraintId) {
-                constraint = new GVRGenericConstraint(gvrContext, nativeConstraint);
+                constraint = new GVRGenericConstraint(gvrContext, rbA, rbB, nativeConstraint);
             }
 
             if (constraint != null) {
                 // Mark this constraint so it will not be deleted
                 constraint.mark();
-
-                world.addConstraint(constraint);
             }
         }
 

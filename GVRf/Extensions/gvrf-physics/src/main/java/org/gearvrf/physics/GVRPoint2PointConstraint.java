@@ -38,14 +38,15 @@ public class GVRPoint2PointConstraint extends GVRConstraint {
      */
     public GVRPoint2PointConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA,
                                     GVRRigidBody rigidBodyB, float pivotInA[], float pivotInB[]) {
-        super(gvrContext,
+        super(gvrContext, rigidBodyA, rigidBodyB,
                 Native3DPoint2PointConstraint.ctor(rigidBodyA.getNative(), rigidBodyB.getNative(),
                         pivotInA, pivotInB));
     }
 
     /** Used only by {@link GVRPhysicsLoader} */
-    GVRPoint2PointConstraint(GVRContext gvrContext, long nativeConstraint) {
-        super(gvrContext, nativeConstraint);
+    GVRPoint2PointConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA,
+                             GVRRigidBody rigidBodyB, long nativeConstraint) {
+        super(gvrContext, rigidBodyA, rigidBodyB, nativeConstraint);
     }
 
     /**

@@ -16,6 +16,7 @@
 package org.gearvrf.physics;
 
 import org.gearvrf.GVRContext;
+import org.gearvrf.GVRSceneObject;
 
 /**
  * Represents a constraint that forces two {@linkplain GVRRigidBody rigid bodies} to keep same
@@ -32,12 +33,14 @@ public class GVRFixedConstraint extends GVRConstraint {
      */
     public GVRFixedConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA,
                               GVRRigidBody rigidBodyB) {
-        super(gvrContext, Native3DFixedConstraint.ctor(rigidBodyA.getNative(), rigidBodyB.getNative()));
+        super(gvrContext, rigidBodyA, rigidBodyB,
+                Native3DFixedConstraint.ctor(rigidBodyA.getNative(), rigidBodyB.getNative()));
     }
 
     /** Used only by {@link GVRPhysicsLoader} */
-    GVRFixedConstraint(GVRContext gvrContext, long nativeConstraint) {
-        super(gvrContext, nativeConstraint);
+    GVRFixedConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA, GVRRigidBody rigidBodyB,
+                       long nativeConstraint) {
+        super(gvrContext, rigidBodyA, rigidBodyB, nativeConstraint);
     }
 }
 

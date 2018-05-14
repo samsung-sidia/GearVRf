@@ -41,13 +41,15 @@ public class GVRHingeConstraint extends GVRConstraint {
     public GVRHingeConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA,
                               GVRRigidBody rigidBodyB, float pivotInA[], float pivotInB[],
                               float axisInA[], float axisInB[]) {
-        super(gvrContext, Native3DHingeConstraint.ctor(rigidBodyA.getNative(),
-                rigidBodyB.getNative(), pivotInA, pivotInB, axisInA, axisInB));
+        super(gvrContext, rigidBodyA, rigidBodyB,
+                Native3DHingeConstraint.ctor(rigidBodyA.getNative(), rigidBodyB.getNative(),
+                        pivotInA, pivotInB, axisInA, axisInB));
     }
 
     /** Used only by {@link GVRPhysicsLoader} */
-    GVRHingeConstraint(GVRContext gvrContext, long nativeConstraint) {
-        super(gvrContext, nativeConstraint);
+    GVRHingeConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA, GVRRigidBody rigidBodyB,
+                       long nativeConstraint) {
+        super(gvrContext, rigidBodyA, rigidBodyB, nativeConstraint);
     }
 
     /**

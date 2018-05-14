@@ -36,13 +36,14 @@ public class GVRSliderConstraint extends GVRConstraint {
      */
     public GVRSliderConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA,
                                GVRRigidBody rigidBodyB) {
-        super(gvrContext,
+        super(gvrContext, rigidBodyA, rigidBodyB,
                 Native3DSliderConstraint.ctor(rigidBodyA.getNative(), rigidBodyB.getNative()));
     }
 
     /** Used only by {@link GVRPhysicsLoader} */
-    GVRSliderConstraint(GVRContext gvrContext, long nativeConstraint) {
-        super(gvrContext, nativeConstraint);
+    GVRSliderConstraint(GVRContext gvrContext, GVRRigidBody rigidBodyA, GVRRigidBody rigidBodyB,
+                        long nativeConstraint) {
+        super(gvrContext, rigidBodyA, rigidBodyB, nativeConstraint);
     }
 
     /**
