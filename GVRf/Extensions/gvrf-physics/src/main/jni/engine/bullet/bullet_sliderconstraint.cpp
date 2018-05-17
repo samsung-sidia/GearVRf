@@ -27,15 +27,16 @@ static const char tag[] = "BulletSliderConstr";
 namespace gvr {
 
     BulletSliderConstraint::BulletSliderConstraint(PhysicsRigidBody *rigidBodyA,
-            PhysicsRigidBody *rigidBodyB)
+            PhysicsRigidBody *rigidBodyB, float const *rotationA, float const *rotationB)
     {
         btRigidBody* rbA = reinterpret_cast<BulletRigidBody*>(rigidBodyA)->getRigidBody();
         btRigidBody* rbB = reinterpret_cast<BulletRigidBody*>(rigidBodyB)->getRigidBody();
 
-        // FIXME: this only works if both bodies have same Y and Z coordinates
-        btTransform frameInA, frameInB;
-        frameInA = btTransform::getIdentity();
-        frameInB = btTransform::getIdentity();
+        btTransform frameInA(btMatrix3x3(rotationA[0], rotationA[1], rotationA[2], rotationA[3],
+                rotationA[4], rotationA[5], rotationA[6], rotationA[7], rotationA[8]));
+
+        btTransform frameInB(btMatrix3x3(rotationB[0], rotationB[1], rotationB[2], rotationB[3],
+                rotationB[4], rotationB[5], rotationB[6], rotationB[7], rotationB[8]));
 
         mSliderConstraint = new btSliderConstraint(*rbA, *rbB, frameInA, frameInB, true);
     }

@@ -33,7 +33,8 @@ namespace gvr {
     class BulletSliderConstraint : public PhysicsSliderConstraint,
                                           BulletObject {
     public:
-        explicit BulletSliderConstraint(PhysicsRigidBody *rigidBodyA, PhysicsRigidBody *rigidBodyB);
+        explicit BulletSliderConstraint(PhysicsRigidBody *rigidBodyA, PhysicsRigidBody *rigidBodyB,
+                float const *rotationA, float const *rotationB);
 
         BulletSliderConstraint(btSliderConstraint *constraint);
 
