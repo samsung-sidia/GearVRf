@@ -57,12 +57,12 @@ public:
             std::vector<ColliderData>& picklist,
             const std::vector<SceneObject*>& collidables);
     static void pickSceneObject(
-            SceneObject* scene_object,
+            const SceneObject* scene_object,
             float ox, float oy, float oz,
             float dx, float dy, float dz,
             ColliderData &colliderData);
     static glm::vec3 pickSceneObjectAgainstBoundingBox(
-            SceneObject* scene_object, float ox, float oy, float oz,
+            const SceneObject* scene_object, float ox, float oy, float oz,
             float dx, float dy, float dz);
 };
 

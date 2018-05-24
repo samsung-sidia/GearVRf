@@ -12,25 +12,28 @@
 namespace gvr {
 /*
  * Determine if the ray hits the collider.
- * @param owner         SceneObject that owns this collider or
- *                      the group it is part of.
  * @param rayStart      origin of ray in world coordinates
  * @param rayDir        direction of ray in world coordinates
  */
-    ColliderData BoxCollider::isHit(SceneObject* owner, const glm::vec3& rayStart, const glm::vec3& rayDir)
+    ColliderData BoxCollider::isHit(const glm::vec3& rayStart, const glm::vec3& rayDir)
     {
         glm::vec3    halfExtent(this->half_extents_);
+        SceneObject* owner = owner_object();
         glm::mat4    model_matrix;
 
         /*
          * If we have a scene object with a mesh
          * get the box center and extents from that.
          */
-        Transform* t = owner->transform();
-        if (t != NULL)
+        if (owner != NULL)
         {
-            model_matrix = t->getModelMatrix();
+            Transform* t = owner->transform();
+            if (t != NULL)
+            {
+                model_matrix = t->getModelMatrix();
+            }
         }
+
         ColliderData data = isHit(model_matrix, halfExtent, rayStart, rayDir);
         data.ObjectHit = owner;
         data.ColliderHit = this;
@@ -67,12 +70,11 @@ namespace gvr {
 
     /*
      * Determine if the sphere hits the collider.
-     * @param owner         SceneObject that owns this collider or
-     *                      the group it is part of.
      * @param sphere array with sphere center and radius
      */
-    ColliderData BoxCollider::isHit(SceneObject* owner, const float sphere[])
+    ColliderData BoxCollider::isHit(const float sphere[])
     {
+        SceneObject* owner = owner_object();
         BoundingVolume& bounds = owner->getBoundingVolume();
         ColliderData data = BoxCollider::isHit(bounds.center(), half_extents_, sphere);
         data.ColliderHit = this;

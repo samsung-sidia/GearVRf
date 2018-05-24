@@ -33,17 +33,14 @@
 namespace gvr {
 /*
  * Determine if the ray hits the collider.
- * @param owner       SceneObject which owns this collider.
- *                    If the collider is part of a group,
- *                    this will be the SceneObject which
- *                    owns the collider group.
- * @param rayStart    origin of ray in world coordinates
- * @param rayDir      direction of ray in world coordinates
+ * @param rayStart      origin of ray in world coordinates
+ * @param rayDir        direction of ray in world coordinates
  */
-ColliderData SphereCollider::isHit(SceneObject* owner, const glm::vec3& rayStart, const glm::vec3& rayDir)
+ColliderData SphereCollider::isHit(const glm::vec3& rayStart, const glm::vec3& rayDir)
 {
     glm::vec3    sphCenter(0, 0, 0);
     float        radius = radius_;
+    SceneObject* owner = owner_object();
     glm::mat4    model_matrix;
 
     /*
@@ -52,9 +49,11 @@ ColliderData SphereCollider::isHit(SceneObject* owner, const glm::vec3& rayStart
      */
     RenderData* rd = owner->render_data();
     Transform* t = owner->transform();
-
-    model_matrix = t->getModelMatrix();
-     /*
+    if (t != NULL)
+    {
+        model_matrix = t->getModelMatrix();
+    }
+    /*
      * If there is a mesh attached to the scene object
      * use the bounding sphere of the mesh to compute
      * the sphere center and radius in mesh coordinates.
@@ -84,18 +83,15 @@ ColliderData SphereCollider::isHit(SceneObject* owner, const glm::vec3& rayStart
 
 /*
  * Determine if the input sphere hits the sphere collider.
- * @param owner       SceneObject which owns this collider.
- *                    If the collider is part of a group,
- *                    this will be the SceneObject which
- *                    owns the collider group
  * @param sphere  float array with center and radius of sphere
  *                in world coordinates.
  */
-ColliderData SphereCollider::isHit(SceneObject* owner, const float sphere[])
+ColliderData SphereCollider::isHit(const float sphere[])
 {
     ColliderData data;
     glm::vec3    colliderCenter(0, 0, 0);
     float        radius = radius_;
+    SceneObject* owner = owner_object();
     glm::mat4    model_matrix;
 
     /*
@@ -108,6 +104,7 @@ ColliderData SphereCollider::isHit(SceneObject* owner, const float sphere[])
     float s[4] = { sphere[0], sphere[1], sphere[2], sphere[3] };
 
     transformSphere(model_inverse, s);
+
     /*
      * If there is a mesh attached to the scene object
      * use the bounding sphere of the mesh to compute

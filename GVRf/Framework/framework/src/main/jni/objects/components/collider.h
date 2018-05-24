@@ -70,16 +70,12 @@ public:
      * Casts the ray against the collider geometry and computes the hit
      * position (if any) in world space.
      *
-     * @param owner       SceneObject which owns this collider.
-     *                    If the collider is part of a group,
-     *                    this will be the SceneObject which
-     *                    owns the collider group.
-     * @param rayStart    origin of the ray in world coordinates
-     * @param rayDir      direction of the ray in world coordinates
+     * @param rayStart      origin of the ray in world coordinates
+     * @param rayDir        direction of the ray in world coordinates
      *
      * @returns ColliderData structure with hit point and distance from camera
      */
-    virtual ColliderData isHit(SceneObject* owner, const glm::vec3& rayStart, const glm::vec3& rayDir) = 0;
+    virtual ColliderData isHit(const glm::vec3& rayStart, const glm::vec3& rayDir) = 0;
 
     /*
      * Hit test the input sphere against this collider.
@@ -91,7 +87,7 @@ public:
      *
      * @returns ColliderData structure with hit point and distance from camera
      */
-    virtual ColliderData isHit(SceneObject* owner, const float sphere[]) = 0;
+    virtual ColliderData isHit(const float sphere[]) = 0;
 
     virtual long shape_type() {
         return COLLIDER_SHAPE_UNKNOWN;
