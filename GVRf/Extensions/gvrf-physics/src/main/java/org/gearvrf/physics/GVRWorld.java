@@ -107,6 +107,11 @@ public class GVRWorld extends GVRComponent {
                     return;
                 }
 
+                if (!contains(gvrConstraint.mBodyA)
+                        || (gvrConstraint.mBodyB != null && !contains(gvrConstraint.mBodyB))) {
+                    throw new UnsupportedOperationException("Rigid body not found in the physics world.");
+                }
+
                 NativePhysics3DWorld.addConstraint(getNative(), gvrConstraint.getNative());
                 mPhysicsObject.put(gvrConstraint.getNative(), gvrConstraint);
             }
