@@ -15,7 +15,6 @@
 
 package org.gearvrf.physics;
 
-import android.content.res.AssetManager;
 import android.os.SystemClock;
 import android.util.LongSparseArray;
 
@@ -43,7 +42,7 @@ public class GVRWorld extends GVRComponent {
         System.loadLibrary("gvrf-physics");
     }
 
-    private final LongSparseArray<GVRRigidBody> mRigidBodies = new LongSparseArray<GVRRigidBody>();
+    private final LongSparseArray<GVRPhysicsWorldObject> mPhysicsObject = new LongSparseArray<GVRPhysicsWorldObject>();
     private final GVRCollisionMatrix mCollisionMatrix;
 
     /**
@@ -104,7 +103,12 @@ public class GVRWorld extends GVRComponent {
         mPhysicsContext.runOnPhysicsThread(new Runnable() {
             @Override
             public void run() {
+                if (contains(gvrConstraint)) {
+                    return;
+                }
+
                 NativePhysics3DWorld.addConstraint(getNative(), gvrConstraint.getNative());
+                mPhysicsObject.put(gvrConstraint.getNative(), gvrConstraint);
             }
         });
     }
@@ -118,7 +122,10 @@ public class GVRWorld extends GVRComponent {
         mPhysicsContext.runOnPhysicsThread(new Runnable() {
             @Override
             public void run() {
-                NativePhysics3DWorld.removeConstraint(getNative(), gvrConstraint.getNative());
+                if (contains(gvrConstraint)) {
+                    NativePhysics3DWorld.removeConstraint(getNative(), gvrConstraint.getNative());
+                    mPhysicsObject.remove(gvrConstraint.getNative());
+                }
             }
         });
     }
@@ -126,11 +133,11 @@ public class GVRWorld extends GVRComponent {
     /**
      * Returns true if the physics world contains the the specified rigid body.
      *
-     * @param rigidBody Rigid body the to check if it is present in the world.
-     * @return true if the world contains the specified rigid body.
+     * @param physicsObject Physics object to check if it is present in the world.
+     * @return true if the world contains the specified object.
      */
-    public boolean contains(GVRRigidBody rigidBody) {
-        return mRigidBodies.get(rigidBody.getNative()) != null;
+    private boolean contains(GVRPhysicsWorldObject physicsObject) {
+        return mPhysicsObject.get(physicsObject.getNative()) != null;
     }
 
     /**
@@ -155,7 +162,7 @@ public class GVRWorld extends GVRComponent {
                             mCollisionMatrix.getCollisionFilterMask(gvrBody.getCollisionGroup()));
                 }
 
-                mRigidBodies.put(gvrBody.getNative(), gvrBody);
+                mPhysicsObject.put(gvrBody.getNative(), gvrBody);
             }
         });
     }
@@ -171,7 +178,7 @@ public class GVRWorld extends GVRComponent {
             public void run() {
                 if (contains(gvrBody)) {
                     NativePhysics3DWorld.removeRigidBody(getNative(), gvrBody.getNative());
-                    mRigidBodies.remove(gvrBody.getNative());
+                    mPhysicsObject.remove(gvrBody.getNative());
                 }
             }
         });
@@ -194,8 +201,8 @@ public class GVRWorld extends GVRComponent {
         for (GVRCollisionInfo info : collisionInfos) {
             if (info.isHit) {
                 sendCollisionEvent(info, onEnter);
-            } else if (mRigidBodies.get(info.bodyA) != null
-                    && mRigidBodies.get(info.bodyB) != null) {
+            } else if (mPhysicsObject.get(info.bodyA) != null
+                    && mPhysicsObject.get(info.bodyB) != null) {
                 // If both bodies are in the scene.
                 sendCollisionEvent(info, onExit);
             }
@@ -204,8 +211,8 @@ public class GVRWorld extends GVRComponent {
     }
 
     private void sendCollisionEvent(GVRCollisionInfo info, String eventName) {
-        GVRSceneObject bodyA = mRigidBodies.get(info.bodyA).getOwnerObject();
-        GVRSceneObject bodyB = mRigidBodies.get(info.bodyB).getOwnerObject();
+        GVRSceneObject bodyA = mPhysicsObject.get(info.bodyA).getOwnerObject();
+        GVRSceneObject bodyB = mPhysicsObject.get(info.bodyB).getOwnerObject();
 
         getGVRContext().getEventManager().sendEvent(bodyA, ICollisionEvents.class, eventName,
                 bodyA, bodyB, info.normal, info.distance);
@@ -215,7 +222,8 @@ public class GVRWorld extends GVRComponent {
     }
 
     private void doPhysicsAttach(GVRSceneObject rootSceneObject) {
-        rootSceneObject.forAllComponents(mComponentVisitor, GVRRigidBody.getComponentType());
+        rootSceneObject.forAllComponents(mRigidBodiesVisitor, GVRRigidBody.getComponentType());
+        rootSceneObject.forAllComponents(mConstraintsVisitor, GVRConstraint.getComponentType());
 
         if (!mInitialized) {
             rootSceneObject.getEventReceiver().addListener(mSceneEventsHandler);
@@ -225,7 +233,8 @@ public class GVRWorld extends GVRComponent {
     }
 
     private void doPhysicsDetach(GVRSceneObject rootSceneObject) {
-        rootSceneObject.forAllComponents(mComponentVisitor, GVRRigidBody.getComponentType());
+        rootSceneObject.forAllComponents(mConstraintsVisitor, GVRConstraint.getComponentType());
+        rootSceneObject.forAllComponents(mRigidBodiesVisitor, GVRRigidBody.getComponentType());
 
         if (!mInitialized) {
             rootSceneObject.getEventReceiver().removeListener(mSceneEventsHandler);
@@ -385,7 +394,7 @@ public class GVRWorld extends GVRComponent {
         public void onStep() {}
     };
 
-    private ComponentVisitor mComponentVisitor = new ComponentVisitor() {
+    private ComponentVisitor mRigidBodiesVisitor = new ComponentVisitor() {
 
         @Override
         public boolean visit(GVRComponent gvrComponent) {
@@ -397,6 +406,23 @@ public class GVRWorld extends GVRComponent {
                 addBody((GVRRigidBody) gvrComponent);
             } else {
                 removeBody((GVRRigidBody) gvrComponent);
+            }
+            return true;
+        }
+    };
+
+    private ComponentVisitor mConstraintsVisitor = new ComponentVisitor() {
+
+        @Override
+        public boolean visit(GVRComponent gvrComponent) {
+            if (!gvrComponent.isEnabled()) {
+                return false;
+            }
+
+            if (GVRWorld.this.owner != null) {
+                addConstraint((GVRConstraint) gvrComponent);
+            } else {
+                removeConstraint((GVRConstraint) gvrComponent);
             }
             return true;
         }
