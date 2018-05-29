@@ -33,6 +33,10 @@ extern "C" {
 
     JNIEXPORT void JNICALL
     Java_org_gearvrf_NativeComponent_setEnable(JNIEnv * env, jobject obj, jlong jlight, jboolean flag);
+
+    JNIEXPORT bool JNICALL
+    Java_org_gearvrf_NativeComponent_isExclusive(JNIEnv * env,
+                                         jobject obj, jlong jcomponent);
 }
 
 JNIEXPORT jlong JNICALL
@@ -65,6 +69,13 @@ Java_org_gearvrf_NativeComponent_setEnable(JNIEnv * env, jobject obj, jlong jcom
 {
     Component* component = reinterpret_cast<Component*>(jcomponent);
     component->set_enable((bool) flag);
+}
+
+JNIEXPORT bool JNICALL
+Java_org_gearvrf_NativeComponent_isExclusive(JNIEnv * env,
+                                             jobject obj, jlong jcomponent) {
+    Component* component = reinterpret_cast<Component*>(jcomponent);
+    return component->is_exclusive();
 }
 
 }
