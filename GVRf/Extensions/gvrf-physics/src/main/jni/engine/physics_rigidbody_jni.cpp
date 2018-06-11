@@ -46,6 +46,11 @@ extern "C" {
             jlong jrigid_body, jfloat x, jfloat y, jfloat z);
 
     JNIEXPORT void JNICALL
+    Java_org_gearvrf_physics_Native3DRigidBody_applyForce(JNIEnv * env, jobject obj,
+			jlong jrigid_body, jfloat force_x, jfloat force_y, jfloat force_z,
+			jfloat rel_pos_x, jfloat rel_pos_y, jfloat rel_pos_z);
+
+    JNIEXPORT void JNICALL
     Java_org_gearvrf_physics_Native3DRigidBody_applyTorque(JNIEnv * env, jobject obj,
             jlong jrigid_body, jfloat x, jfloat y, jfloat z);
 
@@ -189,6 +194,15 @@ Java_org_gearvrf_physics_Native3DRigidBody_applyCentralForce(JNIEnv * env, jobje
     PhysicsRigidBody *rigid_body = reinterpret_cast<PhysicsRigidBody *>(jrigid_body);
 
     rigid_body->applyCentralForce(x, y, z);
+}
+
+JNIEXPORT void JNICALL
+Java_org_gearvrf_physics_Native3DRigidBody_applyForce(JNIEnv * env, jobject obj,
+		jlong jrigid_body, jfloat force_x, jfloat force_y, jfloat force_z,
+		jfloat rel_pos_x, jfloat rel_pos_y, jfloat rel_pos_z) {
+	PhysicsRigidBody *rigid_body = reinterpret_cast<PhysicsRigidBody *>(jrigid_body);
+
+	rigid_body->applyForce(force_x, force_y, force_z, rel_pos_x, rel_pos_y, rel_pos_z);
 }
 
 JNIEXPORT void JNICALL

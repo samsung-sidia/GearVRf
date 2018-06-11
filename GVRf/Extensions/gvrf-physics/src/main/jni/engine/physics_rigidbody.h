@@ -51,6 +51,8 @@ class PhysicsRigidBody : public Component {
 	virtual void getRotation(float &w, float &x, float &y, float &z) = 0;
     virtual void getTranslation(float &x, float &y, float &z) = 0;
     virtual void applyCentralForce(float x, float y, float z) = 0;
+	virtual void applyForce(float force_x, float force_y, float force_z,
+			float rel_pos_x, float rel_pos_y, float rel_pos_z) = 0;
     virtual void applyTorque(float x, float y, float z) = 0;
 
 	virtual void setGravity(float x, float y, float z)  = 0;

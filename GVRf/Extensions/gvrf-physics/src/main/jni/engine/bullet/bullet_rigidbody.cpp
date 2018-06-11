@@ -197,6 +197,12 @@ void BulletRigidBody::applyCentralForce(float x, float y, float z) {
     mRigidBody->applyCentralForce(btVector3(x, y, z));
 }
 
+void BulletRigidBody::applyForce(float force_x, float force_y, float force_z,
+		float rel_pos_x, float rel_pos_y, float rel_pos_z) {
+	mRigidBody->applyForce(btVector3(force_x, force_y, force_z),
+			btVector3(rel_pos_x, rel_pos_y, rel_pos_z));
+}
+
 void BulletRigidBody::applyTorque(float x, float y, float z) {
     mRigidBody->applyTorque(btVector3(x, y, z));
 }
