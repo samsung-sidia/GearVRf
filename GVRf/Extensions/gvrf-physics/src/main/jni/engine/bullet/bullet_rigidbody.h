@@ -65,6 +65,8 @@ class BulletRigidBody : public PhysicsRigidBody,
 	void applyForce(float force_x, float force_y, float force_z,
 			float rel_pos_x, float rel_pos_y, float rel_pos_z);
 
+    void applyCentralImpulse(float x, float y, float z);
+
     void applyTorque(float x, float y, float z);
 
     float center_x() const;
