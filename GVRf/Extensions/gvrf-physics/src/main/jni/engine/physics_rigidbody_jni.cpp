@@ -63,6 +63,10 @@ extern "C" {
     Java_org_gearvrf_physics_Native3DRigidBody_applyTorque(JNIEnv * env, jobject obj,
             jlong jrigid_body, jfloat x, jfloat y, jfloat z);
 
+    JNIEXPORT void JNICALL
+    Java_org_gearvrf_physics_Native3DRigidBody_applyTorqueImpulse(JNIEnv * env, jobject obj,
+            jlong jrigid_body, jfloat x, jfloat y, jfloat z);
+
     JNIEXPORT void   JNICALL
     Java_org_gearvrf_physics_Native3DRigidBody_setGravity(JNIEnv * env, jobject obj,
             jlong jrigid_body, jfloat x, jfloat y, jfloat z);
@@ -237,6 +241,14 @@ Java_org_gearvrf_physics_Native3DRigidBody_applyTorque(JNIEnv * env, jobject obj
     PhysicsRigidBody *rigid_body = reinterpret_cast<PhysicsRigidBody *>(jrigid_body);
 
     rigid_body->applyTorque(x, y, z);
+}
+
+JNIEXPORT void JNICALL
+Java_org_gearvrf_physics_Native3DRigidBody_applyTorqueImpulse(JNIEnv * env, jobject obj,
+        jlong jrigid_body, jfloat x, jfloat y, jfloat z) {
+    PhysicsRigidBody *rigid_body = reinterpret_cast<PhysicsRigidBody *>(jrigid_body);
+
+    rigid_body->applyTorqueImpulse(x, y, z);
 }
 
 JNIEXPORT void   JNICALL

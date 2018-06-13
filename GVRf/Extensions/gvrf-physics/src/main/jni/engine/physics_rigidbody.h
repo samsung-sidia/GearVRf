@@ -57,6 +57,7 @@ class PhysicsRigidBody : public Component {
     virtual void applyImpulse(float impulse_x, float impulse_y, float impulse_z,
                             float rel_pos_x, float rel_pos_y, float rel_pos_z) = 0;
     virtual void applyTorque(float x, float y, float z) = 0;
+    virtual void applyTorqueImpulse(float x, float y, float z) = 0;
 
 	virtual void setGravity(float x, float y, float z)  = 0;
 	virtual void setDamping(float linear, float angular)  = 0;
