@@ -55,6 +55,11 @@ extern "C" {
             jlong jrigid_body, jfloat x, jfloat y, jfloat z);
 
     JNIEXPORT void JNICALL
+    Java_org_gearvrf_physics_Native3DRigidBody_applyImpulse(JNIEnv * env, jobject obj,
+            jlong jrigid_body, jfloat impulse_x, jfloat impulse_y, jfloat impulse_z,
+            jfloat rel_pos_x, jfloat rel_pos_y, jfloat rel_pos_z);
+
+    JNIEXPORT void JNICALL
     Java_org_gearvrf_physics_Native3DRigidBody_applyTorque(JNIEnv * env, jobject obj,
             jlong jrigid_body, jfloat x, jfloat y, jfloat z);
 
@@ -215,6 +220,15 @@ Java_org_gearvrf_physics_Native3DRigidBody_applyCentralImpulse(JNIEnv * env, job
     PhysicsRigidBody *rigid_body = reinterpret_cast<PhysicsRigidBody *>(jrigid_body);
 
     rigid_body->applyCentralImpulse(x, y, z);
+}
+
+JNIEXPORT void JNICALL
+Java_org_gearvrf_physics_Native3DRigidBody_applyImpulse(JNIEnv * env, jobject obj,
+        jlong jrigid_body, jfloat impulse_x, jfloat impulse_y, jfloat impulse_z,
+        jfloat rel_pos_x, jfloat rel_pos_y, jfloat rel_pos_z) {
+        PhysicsRigidBody *rigid_body = reinterpret_cast<PhysicsRigidBody *>(jrigid_body);
+
+        rigid_body->applyImpulse(impulse_x, impulse_y, impulse_z, rel_pos_x, rel_pos_y, rel_pos_z);
 }
 
 JNIEXPORT void JNICALL
