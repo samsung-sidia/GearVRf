@@ -217,6 +217,10 @@ void BulletRigidBody::applyTorque(float x, float y, float z) {
     mRigidBody->applyTorque(btVector3(x, y, z));
 }
 
+void BulletRigidBody::applyTorqueImpulse(float x, float y, float z) {
+    mRigidBody->applyTorqueImpulse(btVector3(x, y, z));
+}
+
 float BulletRigidBody::center_x() const {
     return m_centerOfMassOffset.getOrigin().getX();
 }
