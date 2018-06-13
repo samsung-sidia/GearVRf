@@ -217,6 +217,22 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
     }
 
     /**
+     * Apply a central vector vector [X, Y, Z] to this {@linkplain GVRRigidBody rigid body}
+     *
+     * @param x impulse factor on the 'X' axis.
+     * @param y impulse factor on the 'Y' axis.
+     * @param z impulse factor on the 'Z' axis.
+     */
+    public void applyCentralImpulse(final float x, final float y, final float z) {
+        mPhysicsContext.runOnPhysicsThread(new Runnable() {
+            @Override
+            public void run() {
+                Native3DRigidBody.applyCentralImpulse(getNative(), x, y, z);
+            }
+        });
+    }
+
+    /**
      * Apply a torque vector [X, Y, Z] to this {@linkplain GVRRigidBody rigid body}
      *
      * @param x factor on the 'X' axis.
@@ -492,6 +508,8 @@ class Native3DRigidBody {
 
     static native void applyForce(long jrigid_body, float force_x, float force_y, float force_z,
                                   float rel_pos_x, float rel_pos_y, float rel_pos_z);
+
+    static native void applyCentralImpulse(long jrigid_body, float x, float y, float z);
 
     static native void applyTorque(long jrigid_body, float x, float y, float z);
 

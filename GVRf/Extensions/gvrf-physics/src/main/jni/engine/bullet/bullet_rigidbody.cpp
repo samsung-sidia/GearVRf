@@ -203,6 +203,10 @@ void BulletRigidBody::applyForce(float force_x, float force_y, float force_z,
 			btVector3(rel_pos_x, rel_pos_y, rel_pos_z));
 }
 
+void BulletRigidBody::applyCentralImpulse(float x, float y, float z) {
+    mRigidBody->applyCentralImpulse(btVector3(x, y, z));
+}
+
 void BulletRigidBody::applyTorque(float x, float y, float z) {
     mRigidBody->applyTorque(btVector3(x, y, z));
 }
