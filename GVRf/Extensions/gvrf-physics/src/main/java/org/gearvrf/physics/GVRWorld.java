@@ -45,6 +45,8 @@ public class GVRWorld extends GVRComponent {
     private final LongSparseArray<GVRPhysicsWorldObject> mPhysicsObject = new LongSparseArray<GVRPhysicsWorldObject>();
     private final GVRCollisionMatrix mCollisionMatrix;
 
+    private final PhysicsDrag mDrag;
+
     /**
      * Constructs new instance to simulate the Physics World of the Scene.
      *
@@ -84,6 +86,7 @@ public class GVRWorld extends GVRComponent {
      */
     public GVRWorld(GVRContext gvrContext, GVRCollisionMatrix collisionMatrix, long interval) {
         super(gvrContext, NativePhysics3DWorld.ctor());
+        mDrag = new PhysicsDrag(gvrContext);
         mInitialized = false;
         mCollisionMatrix = collisionMatrix;
         mWorldTask = new GVRWorldTask(interval);
@@ -133,6 +136,26 @@ public class GVRWorld extends GVRComponent {
                 }
             }
         });
+    }
+
+    private boolean mDragActive = false;
+
+    public void setDraggingCursor(GVRSceneObject draggingCursor) {
+        mDrag.setDraggingCursor(draggingCursor);
+    }
+
+    public void enableDragging() {
+        mDragActive = true;
+        if (isEnabled()) {
+            mDrag.setActive(true);
+        }
+    }
+
+    public void disableDragging() {
+        mDragActive = false;
+        if (isEnabled()) {
+            mDrag.setActive(false);
+        }
     }
 
     private GVRRigidBody mDragTarget = null;
@@ -308,6 +331,7 @@ public class GVRWorld extends GVRComponent {
 
         if (getOwnerObject() != null && mInitialized) {
             startSimulation();
+            mDrag.setActive(mDragActive);
         }
     }
 
@@ -315,6 +339,7 @@ public class GVRWorld extends GVRComponent {
     public void onDisable() {
         super.onDisable();
 
+        mDrag.setActive(false);
         stopSimulation();
     }
 
