@@ -90,6 +90,20 @@ public class GVRPhysicsLoader {
                 continue;
             }
 
+            if (sceneObject.getComponent(GVRCollider.getComponentType()) == null) {
+                GVRMeshCollider collider = new GVRMeshCollider(gvrContext, true);
+                // Collider for picking.
+                sceneObject.attachComponent(collider);
+            }
+
+            if (sceneObject.getParent() != sceneRoot) {
+                // Rigid bodies must be at scene root.
+                float[] modelmtx = sceneObject.getTransform().getModelMatrix();
+                sceneObject.getParent().removeChildObject(sceneObject);
+                sceneObject.getTransform().setModelMatrix(modelmtx);
+                sceneRoot.addChildObject(sceneObject);
+            }
+
             GVRRigidBody rigidBody = new GVRRigidBody(gvrContext, nativeRigidBody);
             sceneObject.attachComponent(rigidBody);
             rbObjects.put(nativeRigidBody, sceneObject);
