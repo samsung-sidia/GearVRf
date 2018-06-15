@@ -123,6 +123,40 @@ public class GVRWorld extends GVRComponent {
         });
     }
 
+    private GVRRigidBody mDragTarget = null;
+
+    boolean startDragging(final GVRSceneObject dragger, final GVRRigidBody target) {
+        if (mDragTarget == null) {
+            mPhysicsContext.runOnPhysicsThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDragTarget = target;
+                    NativePhysics3DWorld.startDragging(getNative(), dragger.getNative(), target.getNative());
+                }
+            });
+
+            return true;
+        }
+
+        return false;
+    }
+
+    boolean stopDragging(GVRRigidBody target) {
+        if (mDragTarget != null && mDragTarget == target) {
+            mPhysicsContext.runOnPhysicsThread(new Runnable() {
+                @Override
+                public void run() {
+                    NativePhysics3DWorld.stopDragging(getNative());
+                    mDragTarget = null;
+                }
+            });
+
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Returns true if the physics world contains the the specified rigid body.
      *
@@ -411,6 +445,10 @@ class NativePhysics3DWorld {
     static native boolean addConstraint(long jphysics_world, long jconstraint);
 
     static native boolean removeConstraint(long jphysics_world, long jconstraint);
+
+    static native void startDragging(long jphysics_world, long jdragger, long jtarget);
+
+    static native void stopDragging(long jphysics_world);
 
     static native boolean addRigidBody(long jphysics_world, long jrigid_body);
 

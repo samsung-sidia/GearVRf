@@ -130,6 +130,18 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
         return (GVRWorld) world;
     }
 
+    public boolean startDragging(GVRSceneObject dragger) {
+        GVRWorld world;
+
+        return dragger != null && (getSimulationType() == DYNAMIC) && (world = getWorld()) != null && world.startDragging(dragger, this);
+    }
+
+    public boolean stopDragging() {
+        GVRWorld world = getWorld();
+
+        return world != null && world.stopDragging(this);
+    }
+
     /**
      * Establishes how this rigid body will behave in the simulation.
      *
@@ -167,15 +179,6 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
      */
     public float getMass() {
         return Native3DRigidBody.getMass(getNative());
-    }
-
-    /**
-     * Set mass.
-     *
-     * @param mass The mass to the body.
-     */
-    public void setMass(float mass) {
-        Native3DRigidBody.setMass(getNative(), mass);
     }
 
     /**
@@ -539,8 +542,6 @@ class Native3DRigidBody {
     static native long getComponentType();
 
     static native float getMass(long jrigid_body);
-
-    static native void setMass(long jrigid_body, float jmass);
 
     static native void applyCentralForce(long jrigid_body, float x, float y, float z);
 
