@@ -25,8 +25,10 @@ import android.graphics.SurfaceTexture;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.view.ActionMode;
 import android.view.GestureDetector;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -561,6 +563,29 @@ public class GVRViewSceneObject extends GVRSceneObject {
             return false;
         }
 
+        private void dispatchHoverEventToAndroidView(GVRPicker.GVRPickedObject pickInfo){
+
+            float hitX = pickInfo.textureCoords[0] * getWidth();
+            float hitY = pickInfo.textureCoords[1] * getHeight();
+            long now = SystemClock.uptimeMillis();
+
+            final MotionEvent event = MotionEvent.obtain(
+                    now, now,
+                    MotionEvent.ACTION_HOVER_MOVE,
+                    hitX,
+                    hitY,
+                    0);
+            event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+
+            mGVRContext.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dispatchHoverEvent(event);
+                    event.recycle();
+                }
+            });
+        }
+
         public void setCurrentFocusedView(View view) {
             view.requestFocus();
         }
@@ -738,6 +763,8 @@ public class GVRViewSceneObject extends GVRSceneObject {
         @Override
         public void onInside(GVRSceneObject sceneObject, GVRPicker.GVRPickedObject pickInfo) {
             final MotionEvent event = pickInfo.motionEvent;
+
+            dispatchHoverEventToAndroidView(pickInfo);
 
             if (sceneObject == mSelected && event != null
                     && event.getAction() == MotionEvent.ACTION_MOVE) {
