@@ -19,6 +19,7 @@ import android.os.SystemClock;
 import android.util.LongSparseArray;
 
 import org.gearvrf.GVRComponent;
+import org.gearvrf.GVRComponentGroup;
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRSceneObject;
 import org.gearvrf.GVRSceneObject.ComponentVisitor;
@@ -486,11 +487,22 @@ public class GVRWorld extends GVRComponent {
                 return false;
             }
 
-            if (GVRWorld.this.owner != null) {
-                addConstraint((GVRConstraint) gvrComponent);
-            } else {
-                removeConstraint((GVRConstraint) gvrComponent);
+            GVRComponentGroup<GVRConstraint> group = (GVRComponentGroup) gvrComponent;
+
+            if (group == null) {
+                if (GVRWorld.this.owner != null) {
+                    addConstraint((GVRConstraint) gvrComponent);
+                } else {
+                    removeConstraint((GVRConstraint) gvrComponent);
+                }
+            } else for (GVRConstraint constraint: group) {
+                if (GVRWorld.this.owner != null) {
+                    addConstraint(constraint);
+                } else {
+                    removeConstraint(constraint);
+                }
             }
+
             return true;
         }
     };
