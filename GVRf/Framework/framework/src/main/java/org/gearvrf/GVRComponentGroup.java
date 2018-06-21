@@ -66,6 +66,9 @@ public final class GVRComponentGroup<T extends GVRComponent> extends GVRComponen
     public void addChildComponent(T child) {
         synchronized (mComponents) {
             mComponents.add(child);
+            if (owner != null) {
+                child.setOwnerObject(owner);
+            }
         }
     }
 
@@ -73,6 +76,9 @@ public final class GVRComponentGroup<T extends GVRComponent> extends GVRComponen
     public void removeChildComponent(T child) {
         synchronized (mComponents) {
             mComponents.remove(child);
+            if (owner != null) {
+                child.setOwnerObject(null);
+            }
         }
     }
 
@@ -92,20 +98,13 @@ public final class GVRComponentGroup<T extends GVRComponent> extends GVRComponen
         }
     }
 
-     @Override
-    public void onAttach(GVRSceneObject newOwner) {
-         synchronized (mComponents) {
-             for (T t : mComponents) {
-                 t.onAttach(newOwner);
-             }
-         }
-    }
-
     @Override
-    public void onDetach(GVRSceneObject oldOwner) {
+    public void setOwnerObject(GVRSceneObject owner) {
+        super.setOwnerObject(owner);
+
         synchronized (mComponents) {
             for (T t : mComponents) {
-                t.onDetach(oldOwner);
+                t.setOwnerObject(owner);
             }
         }
     }
