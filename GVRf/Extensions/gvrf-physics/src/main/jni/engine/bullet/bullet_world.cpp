@@ -95,22 +95,21 @@ void BulletWorld::removeConstraint(PhysicsConstraint *constraint) {
     mPhysicsWorld->removeConstraint(reinterpret_cast<btTypedConstraint*>(constraint->getUnderlying()));
 }
 
-void BulletWorld::startDragging(SceneObject *dragger, PhysicsRigidBody *target)
-{
+void BulletWorld::startDrag(SceneObject *pivot_obj, PhysicsRigidBody *target,
+                            float relx, float rely, float relz) {
     btRigidBody *rb = reinterpret_cast<BulletRigidBody*>(target)->getRigidBody();
     mActivationState = rb->getActivationState();
     rb->setActivationState(DISABLE_DEACTIVATION);
 
-    mDraggingConstraint = new btPoint2PointConstraint(*rb, btVector3(0.f, 0.f, 0.f));
+    mDraggingConstraint = new btPoint2PointConstraint(*rb, btVector3(relx, rely, relz));
 
     mPhysicsWorld->addConstraint(mDraggingConstraint, true);
     mDraggingConstraint->m_setting.m_impulseClamp = 30.f;
     mDraggingConstraint->m_setting.m_tau = 0.001f;
-    mDragger = dragger;
+    mPivotObject = pivot_obj;
 }
 
-void BulletWorld::stopDragging()
-{
+void BulletWorld::stopDrag() {
     btRigidBody *rb = &mDraggingConstraint->getRigidBodyA();
     rb->forceActivationState(mActivationState);
     rb->activate();
@@ -139,7 +138,7 @@ void BulletWorld::removeRigidBody(PhysicsRigidBody *body) {
 void BulletWorld::step(float timeStep, int maxSubSteps) {
     if (mDraggingConstraint != nullptr)
     {
-        auto matrixB = mDragger->transform()->getModelMatrix(true);
+        auto matrixB = mPivotObject->transform()->getModelMatrix(true);
         mDraggingConstraint->setPivotB(btVector3(matrixB[3][0], matrixB[3][1], matrixB[3][2]));
     }
 

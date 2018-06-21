@@ -48,9 +48,10 @@ class BulletWorld : public PhysicsWorld {
 
     void removeConstraint(PhysicsConstraint *constraint);
 
-    void startDragging(SceneObject *dragger, PhysicsRigidBody *target);
+    void startDrag(SceneObject *pivot_obj, PhysicsRigidBody *target,
+                   float relx, float rely, float relz);
 
-    void stopDragging();
+    void stopDrag();
 
     void addRigidBody(PhysicsRigidBody *body);
 
@@ -82,7 +83,7 @@ class BulletWorld : public PhysicsWorld {
     btBroadphaseInterface *mOverlappingPairCache;
 
     btPoint2PointConstraint *mDraggingConstraint;
-    SceneObject *mDragger;
+    SceneObject *mPivotObject;
     int mActivationState;
 
     //void (*gTmpFilter)(); // btNearCallback

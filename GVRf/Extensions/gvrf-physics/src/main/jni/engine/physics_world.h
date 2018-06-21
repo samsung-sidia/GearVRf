@@ -50,9 +50,10 @@ public:
 
     virtual void removeConstraint(PhysicsConstraint *constraint) = 0;
 
-    virtual void startDragging(SceneObject *dragger, PhysicsRigidBody *target) = 0;
+    virtual void startDrag(SceneObject *dragger, PhysicsRigidBody *target,
+		float relX, float relY, float relZ) = 0;
 
-    virtual void stopDragging() = 0;
+    virtual void stopDrag() = 0;
 
     virtual void addRigidBody(PhysicsRigidBody *body) = 0;
 

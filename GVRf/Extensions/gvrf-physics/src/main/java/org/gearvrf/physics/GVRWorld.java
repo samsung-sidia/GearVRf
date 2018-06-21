@@ -22,7 +22,10 @@ import org.gearvrf.GVRComponent;
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRSceneObject;
 import org.gearvrf.GVRSceneObject.ComponentVisitor;
+import org.gearvrf.GVRTransform;
 import org.gearvrf.ISceneObjectEvents;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 /**
  * Represents a physics world where all {@link GVRSceneObject} with {@link GVRRigidBody} component
@@ -45,7 +48,8 @@ public class GVRWorld extends GVRComponent {
     private final LongSparseArray<GVRPhysicsWorldObject> mPhysicsObject = new LongSparseArray<GVRPhysicsWorldObject>();
     private final GVRCollisionMatrix mCollisionMatrix;
 
-    private final PhysicsDrag mDrag;
+    private final PhysicsDragger mPhysicsDragger;
+    private GVRRigidBody mRigidBodyDragMe = null;
 
     /**
      * Constructs new instance to simulate the Physics World of the Scene.
@@ -86,7 +90,7 @@ public class GVRWorld extends GVRComponent {
      */
     public GVRWorld(GVRContext gvrContext, GVRCollisionMatrix collisionMatrix, long interval) {
         super(gvrContext, NativePhysics3DWorld.ctor());
-        mDrag = new PhysicsDrag(gvrContext);
+        mPhysicsDragger = new PhysicsDragger(gvrContext);
         mInitialized = false;
         mCollisionMatrix = collisionMatrix;
         mWorldTask = new GVRWorldTask(interval);
@@ -138,58 +142,59 @@ public class GVRWorld extends GVRComponent {
         });
     }
 
-    private boolean mDragActive = false;
+    /**
+     * Start the drag operation of a scene object with a rigid body.
+     *
+     * @param sceneObject Scene object with a rigid body attached to it.
+     * @param hitX rel position in x-axis.
+     * @param hitY rel position in y-axis.
+     * @param hitZ rel position in z-axis.
+     * @return true if success, otherwise returns false.
+     */
+    public boolean startDrag(final GVRSceneObject sceneObject,
+                             final float hitX, final float hitY, final float hitZ) {
+        final GVRRigidBody dragMe = (GVRRigidBody)sceneObject.getComponent(GVRRigidBody.getComponentType());
+        if (dragMe == null || dragMe.getSimulationType() != GVRRigidBody.DYNAMIC || !contains(dragMe))
+            return false;
 
-    public void setDraggingCursor(GVRSceneObject draggingCursor) {
-        mDrag.setDraggingCursor(draggingCursor);
+        GVRTransform t = sceneObject.getTransform();
+
+        final Vector3f relPos = new Vector3f(hitX, hitY, hitZ);
+        relPos.mul(t.getScaleX(), t.getScaleY(), t.getScaleZ());
+        relPos.rotate(new Quaternionf(t.getRotationX(), t.getRotationY(), t.getRotationZ(), t.getRotationW()));
+
+        final GVRSceneObject pivotObject = mPhysicsDragger.startDrag(sceneObject,
+                relPos.x, relPos.y, relPos.z);
+        if (pivotObject == null)
+            return false;
+
+        mPhysicsContext.runOnPhysicsThread(new Runnable() {
+            @Override
+            public void run() {
+                mRigidBodyDragMe = dragMe;
+                NativePhysics3DWorld.startDrag(getNative(), pivotObject.getNative(), dragMe.getNative(),
+                        hitX, hitY, hitZ);
+            }
+        });
+
+        return true;
     }
 
-    public void enableDragging() {
-        mDragActive = true;
-        if (isEnabled()) {
-            mDrag.setActive(true);
-        }
-    }
+    /**
+     * Stop the drag action.
+     */
+    public void stopDrag() {
+        mPhysicsDragger.stopDrag();
 
-    public void disableDragging() {
-        mDragActive = false;
-        if (isEnabled()) {
-            mDrag.setActive(false);
-        }
-    }
-
-    private GVRRigidBody mDragTarget = null;
-
-    boolean startDragging(final GVRSceneObject dragger, final GVRRigidBody target) {
-        if (mDragTarget == null) {
-            mPhysicsContext.runOnPhysicsThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDragTarget = target;
-                    NativePhysics3DWorld.startDragging(getNative(), dragger.getNative(), target.getNative());
+        mPhysicsContext.runOnPhysicsThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mRigidBodyDragMe != null) {
+                    NativePhysics3DWorld.stopDrag(getNative());
+                    mRigidBodyDragMe = null;
                 }
-            });
-
-            return true;
-        }
-
-        return false;
-    }
-
-    boolean stopDragging(GVRRigidBody target) {
-        if (mDragTarget != null && mDragTarget == target) {
-            mPhysicsContext.runOnPhysicsThread(new Runnable() {
-                @Override
-                public void run() {
-                    NativePhysics3DWorld.stopDragging(getNative());
-                    mDragTarget = null;
-                }
-            });
-
-            return true;
-        }
-
-        return false;
+            }
+        });
     }
 
     /**
@@ -331,7 +336,6 @@ public class GVRWorld extends GVRComponent {
 
         if (getOwnerObject() != null && mInitialized) {
             startSimulation();
-            mDrag.setActive(mDragActive);
         }
     }
 
@@ -339,7 +343,6 @@ public class GVRWorld extends GVRComponent {
     public void onDisable() {
         super.onDisable();
 
-        mDrag.setActive(false);
         stopSimulation();
     }
 
@@ -502,9 +505,10 @@ class NativePhysics3DWorld {
 
     static native boolean removeConstraint(long jphysics_world, long jconstraint);
 
-    static native void startDragging(long jphysics_world, long jdragger, long jtarget);
+    static native void startDrag(long jphysics_world, long jdragger, long jtarget,
+                                 float relX, float relY, float relZ);
 
-    static native void stopDragging(long jphysics_world);
+    static native void stopDrag(long jphysics_world);
 
     static native boolean addRigidBody(long jphysics_world, long jrigid_body);
 

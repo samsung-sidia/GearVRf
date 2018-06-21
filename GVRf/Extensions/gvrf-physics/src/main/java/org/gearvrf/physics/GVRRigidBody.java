@@ -130,18 +130,6 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
         return (GVRWorld) world;
     }
 
-    boolean startDragging(GVRSceneObject dragger) {
-        GVRWorld world;
-
-        return dragger != null && (getSimulationType() == DYNAMIC) && (world = getWorld()) != null && world.startDragging(dragger, this);
-    }
-
-    boolean stopDragging() {
-        GVRWorld world = getWorld();
-
-        return world != null && world.stopDragging(this);
-    }
-
     /**
      * Establishes how this rigid body will behave in the simulation.
      *
