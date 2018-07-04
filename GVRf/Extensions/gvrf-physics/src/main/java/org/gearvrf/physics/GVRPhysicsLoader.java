@@ -152,6 +152,7 @@ public class GVRPhysicsLoader {
                 }
 
                 group.addChildComponent(constraint);
+                constraint.setOwnerObject(sceneObject);
             }
         }
 
