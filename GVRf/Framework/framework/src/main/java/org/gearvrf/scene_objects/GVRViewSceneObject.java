@@ -281,49 +281,54 @@ public class GVRViewSceneObject extends GVRSceneObject {
         }
     }
 
+    /**
+     * @return The instance of inflated view
+     */
     public View getView() {
         return mView;
     }
 
+    /**
+     * @see {@link View#postInvalidate()}
+     */
     public void invalidate() {
-        if (mRootViewGroup != null)
-            mRootViewGroup.postInvalidate();
+        mRootViewGroup.postInvalidate();
     }
 
+    /**
+     * @see {@link View#findFocus()}
+     */
     public View findFocus() {
-        if (mRootViewGroup != null) {
-            return mRootViewGroup.findFocus();
-        }
-
-        return null;
+        return mRootViewGroup.findFocus();
     }
 
+    /**
+     * Set the focused child view by its id
+     * @param id id of child view
+     */
     public void setFocusedView(int id) {
-        if (mRootViewGroup != null) {
-            mRootViewGroup.setCurrentFocusedView( mRootViewGroup.findViewById(id));
-        }
+        mRootViewGroup.setCurrentFocusedView(mRootViewGroup.findViewById(id));
     }
 
+    /**
+     * @see {@link View#requestFocus()}
+     */
     public void setFocusedView(View view) {
-        if (mRootViewGroup != null) {
-            mRootViewGroup.setCurrentFocusedView(view);
-        }
+        mRootViewGroup.setCurrentFocusedView(view);
     }
 
+    /**
+     * @see {@link View#findViewById(int)}
+     */
     public View findViewById(int id) {
-        if (mRootViewGroup != null) {
-            return mRootViewGroup.findViewById(id);
-        }
-
-        return null;
+        return mRootViewGroup.findViewById(id);
     }
 
+    /**
+     * @see {@link View#findViewWithTag(Object)}
+     */
     public View findViewWithTag(Object tag) {
-        if (mRootViewGroup != null) {
-            return mRootViewGroup.findViewWithTag(tag);
-        }
-
-        return null;
+        return mRootViewGroup.findViewWithTag(tag);
     }
 
     /**
