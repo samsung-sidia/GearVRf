@@ -455,7 +455,16 @@ public class ARCoreSession extends MRCommon {
             return null;
 
         Vector2f tapPosition = convertToDisplayGeometrySpace(collision.getHitLocation());
-        List<HitResult> hitResult = arFrame.hitTest(tapPosition.x, tapPosition.y);
+
+        return onHitTest(sceneObj, tapPosition.x, tapPosition.y);
+    }
+
+    @Override
+    protected GVRHitResult onHitTest(GVRSceneObject sceneObj, float x, float y) {
+        if (sceneObj != mARPassThroughObject)
+            return null;
+
+        List<HitResult> hitResult = arFrame.hitTest(x, y);
 
         return mArCoreHelper.hitTest(hitResult);
     }

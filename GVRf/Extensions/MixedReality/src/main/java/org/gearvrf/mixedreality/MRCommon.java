@@ -108,6 +108,11 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
+    public GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y) {
+        return onHitTest(sceneObj, x, y);
+    }
+
+    @Override
     public GVRLightEstimate getLightEstimate() {
         return onGetLightEstimate();
     }
@@ -154,6 +159,8 @@ public abstract class MRCommon implements IMRCommon {
     protected abstract void onSetEnableCloudAnchor(boolean enableCloudAnchor);
 
     protected abstract GVRHitResult onHitTest(GVRSceneObject sceneObj, GVRPicker.GVRPickedObject collision);
+
+    protected abstract GVRHitResult onHitTest(GVRSceneObject sceneObj, float x, float y);
 
     protected abstract GVRLightEstimate onGetLightEstimate();
 

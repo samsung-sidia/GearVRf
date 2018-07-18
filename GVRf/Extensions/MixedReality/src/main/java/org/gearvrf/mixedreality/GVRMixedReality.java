@@ -194,6 +194,14 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
+    public GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y) {
+        if (mState == SessionState.ON_PAUSE) {
+            throw new UnsupportedOperationException("Session is not resumed");
+        }
+        return mSession.hitTest(sceneObj, x, y);
+    }
+
+    @Override
     public GVRLightEstimate getLightEstimate() {
         if (mState == SessionState.ON_PAUSE) {
             throw new UnsupportedOperationException("Session is not resumed");

@@ -126,12 +126,23 @@ public interface IMRCommon {
     void setEnableCloudAnchor(boolean enableCloudAnchor);
 
     /**
+     * Test collision on plane
      *
      * @param sceneObj
      * @param collision
      * @return
      */
     GVRHitResult hitTest(GVRSceneObject sceneObj, GVRPicker.GVRPickedObject collision);
+
+    /**
+     * Test collision on plane
+     *
+     * @param sceneObj
+     * @param x
+     * @param y
+     * @return
+     */
+    GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y);
 
     /**
      *
