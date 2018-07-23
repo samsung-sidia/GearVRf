@@ -16,7 +16,7 @@
 package org.gearvrf.mixedreality.arcore;
 
 import com.google.ar.core.Anchor;
-import com.google.ar.core.TrackingState;
+import com.google.ar.core.Pose;
 
 import org.gearvrf.GVRContext;
 import org.gearvrf.mixedreality.GVRAnchor;
@@ -66,6 +66,21 @@ public class ARCoreAnchor extends GVRAnchor {
     @Override
     public String getCloudAnchorId() {
         return mAnchor.getCloudAnchorId();
+    }
+
+    @Override
+    public float[] getPose() {
+        float[] pose = new float[16];
+        mAnchor.getPose().toMatrix(pose, 0);
+        return pose;
+    }
+
+    @Override
+    public float[] makeTranslate(float x, float y, float z) {
+        float[] newPose = new float[16];
+        Pose pose = mAnchor.getPose().compose(Pose.makeTranslation(x, y, z));
+        pose.toMatrix(newPose, 0);
+        return newPose;
     }
 
     /**

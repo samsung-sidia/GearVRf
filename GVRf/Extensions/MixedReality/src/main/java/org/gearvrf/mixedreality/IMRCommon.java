@@ -170,4 +170,6 @@ public interface IMRCommon {
      * @return An ArrayList of GVRAugmentedImage
      */
     ArrayList<GVRAugmentedImage> getAllAugmentedImages();
+
+    float[] makeInterpolated(float[] poseA, float[] poseB, float t);
 }

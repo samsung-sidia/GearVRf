@@ -454,9 +454,9 @@ public class ARCoreSession extends MRCommon {
         if (sceneObj != mARPassThroughObject)
             return null;
 
-        Vector2f tapPosition = convertToDisplayGeometrySpace(collision.getHitLocation());
+        float[] tapPosition = collision.getHitLocation();
 
-        return onHitTest(sceneObj, tapPosition.x, tapPosition.y);
+        return onHitTest(sceneObj, tapPosition[0], tapPosition[1]);
     }
 
     @Override
@@ -464,7 +464,9 @@ public class ARCoreSession extends MRCommon {
         if (sceneObj != mARPassThroughObject)
             return null;
 
-        List<HitResult> hitResult = arFrame.hitTest(x, y);
+        Vector2f tapPosition = convertToDisplayGeometrySpace(x, y);
+
+        List<HitResult> hitResult = arFrame.hitTest(tapPosition.x, tapPosition.y);
 
         return mArCoreHelper.hitTest(hitResult);
     }
@@ -497,9 +499,27 @@ public class ARCoreSession extends MRCommon {
         return mArCoreHelper.getAllAugmentedImages();
     }
 
-    private Vector2f convertToDisplayGeometrySpace(float[] hitPoint) {
-        final float hitX = hitPoint[0] + 0.5f * mDisplayGeometry.x;
-        final float hitY = mDisplayGeometry.y - hitPoint[1] - 0.5f * mDisplayGeometry.y;
+    @Override
+    protected float[] onMakeInterpolated(float[] poseA, float[] poseB, float t) {
+        float[] translation = new float[3];
+        float[] rotation = new float[4];
+        float[] newMatrixPose = new float[16];
+
+        convertMatrixPoseToVector(poseA, translation, rotation);
+        Pose ARPoseA = new Pose(translation, rotation);
+
+        convertMatrixPoseToVector(poseB, translation, rotation);
+        Pose ARPoseB = new Pose(translation, rotation);
+
+        Pose newPose = Pose.makeInterpolated(ARPoseA, ARPoseB, t);
+        newPose.toMatrix(newMatrixPose, 0);
+
+        return newMatrixPose;
+    }
+
+    private Vector2f convertToDisplayGeometrySpace(float x, float y) {
+        final float hitX = x + 0.5f * mDisplayGeometry.x;
+        final float hitY = mDisplayGeometry.y - y - 0.5f * mDisplayGeometry.y;
 
         return new Vector2f(hitX, hitY);
     }

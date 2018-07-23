@@ -132,6 +132,11 @@ public abstract class MRCommon implements IMRCommon {
         return onGetAllAugmentedImages();
     }
 
+    @Override
+    public float[] makeInterpolated(float[] poseA, float[] poseB, float t) {
+        return onMakeInterpolated(poseA, poseB, t);
+    }
+
     protected abstract void onResume();
 
     protected abstract void onPause();
@@ -152,7 +157,7 @@ public abstract class MRCommon implements IMRCommon {
 
     protected abstract void onRemoveAnchor(GVRAnchor anchor);
 
-    protected  abstract void onHostAnchor(GVRAnchor anchor, ICloudAnchorListener listener);
+    protected abstract void onHostAnchor(GVRAnchor anchor, ICloudAnchorListener listener);
 
     protected abstract void onResolveCloudAnchor(String anchorId, ICloudAnchorListener listener);
 
@@ -169,4 +174,6 @@ public abstract class MRCommon implements IMRCommon {
     protected abstract void onSetAugmentedImages(ArrayList<Bitmap> imagesList);
 
     protected abstract ArrayList<GVRAugmentedImage> onGetAllAugmentedImages();
+
+    protected abstract float[] onMakeInterpolated(float[] poseA, float[] poseB, float t);
 }

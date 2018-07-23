@@ -224,6 +224,11 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
         return mSession.getAllAugmentedImages();
     }
 
+    @Override
+    public float[] makeInterpolated(float[] poseA, float[] poseB, float t) {
+        return mSession.makeInterpolated(poseA, poseB, t);
+    }
+
     private class ActivityEventsHandler extends GVREventListeners.ActivityEvents {
         @Override
         public void onPause() {
