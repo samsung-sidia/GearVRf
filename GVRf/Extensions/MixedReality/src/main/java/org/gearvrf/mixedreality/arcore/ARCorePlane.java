@@ -16,6 +16,7 @@
 package org.gearvrf.mixedreality.arcore;
 
 import com.google.ar.core.Plane;
+import com.google.ar.core.Pose;
 
 import org.gearvrf.GVRContext;
 import org.gearvrf.mixedreality.GVRPlane;
@@ -97,6 +98,17 @@ class ARCorePlane extends GVRPlane {
     @Override
     public GVRPlane getParentPlane() {
         return mParentPlane;
+    }
+
+    @Override
+    public boolean isPoseInPolygon(float[] pose) {
+
+        float[] translation = new float[3];
+        float[] rotation = new float[4];
+
+        ARCoreSession.convertMatrixPoseToVector(pose, translation, rotation);
+
+        return mARPlane.isPoseInPolygon(new Pose(translation, rotation));
     }
 
     /**

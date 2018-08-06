@@ -44,7 +44,6 @@ public abstract class GVRPlane extends GVRSceneObject {
     }
 
     /**
-     *
      * @return The scene object that represents the plane
      */
     public GVRSceneObject getSceneObject() {
@@ -52,46 +51,47 @@ public abstract class GVRPlane extends GVRSceneObject {
     }
 
     /**
-     *
      * @return The plane tracking state
      */
     public abstract GVRTrackingState getTrackingState();
 
     /**
-     *
      * @return The plane center pose
      */
     public abstract float[] getCenterPose();
 
     /**
-     *
      * @return The plane type
      */
     public abstract Type getPlaneType();
 
     /**
-     *
      * @return The plane width
      */
     public abstract float getWidth();
 
     /**
-     *
      * @return The plane height
      */
     public abstract float getHeight();
 
     /**
-     *
      * @return The polygon that best represents the plane
      */
     public abstract FloatBuffer getPolygon();
 
     /**
-     *
      * @return The parent plane
      */
     public abstract GVRPlane getParentPlane();
+
+    /**
+     * Check if the given pose is in the plane's polygon.
+     *
+     * @param pose the pose matrix to check
+     * @return whether the pose is in the plane's polygon or not.
+     */
+    public abstract boolean isPoseInPolygon(float[] pose);
 
     /**
      * Describes the possible types of planes

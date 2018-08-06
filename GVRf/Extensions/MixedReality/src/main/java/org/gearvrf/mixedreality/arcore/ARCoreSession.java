@@ -535,7 +535,7 @@ public class ARCoreSession extends MRCommon {
         return new Vector2f(hitX, hitY);
     }
 
-    private void convertMatrixPoseToVector(float[] pose, float[] translation, float[] rotation) {
+    static void convertMatrixPoseToVector(float[] pose, float[] translation, float[] rotation) {
         Vector3f vectorTranslation = new Vector3f();
         Quaternionf quaternionRotation = new Quaternionf();
         Matrix4f matrixPose = new Matrix4f();
