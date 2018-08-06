@@ -137,6 +137,10 @@ public abstract class MRCommon implements IMRCommon {
         return onMakeInterpolated(poseA, poseB, t);
     }
 
+    public float[] getCameraPoseMatrix() {
+        return onGetCameraPoseMatrix();
+    }
+
     protected abstract void onResume();
 
     protected abstract void onPause();
@@ -176,4 +180,6 @@ public abstract class MRCommon implements IMRCommon {
     protected abstract ArrayList<GVRAugmentedImage> onGetAllAugmentedImages();
 
     protected abstract float[] onMakeInterpolated(float[] poseA, float[] poseB, float t);
+
+    protected abstract float[] onGetCameraPoseMatrix();
 }

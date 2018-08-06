@@ -49,6 +49,7 @@ import org.gearvrf.GVRRenderData;
 import org.gearvrf.GVRScene;
 import org.gearvrf.GVRSceneObject;
 import org.gearvrf.GVRTexture;
+import org.gearvrf.mixedreality.CameraPermissionHelper;
 import org.gearvrf.mixedreality.GVRAnchor;
 import org.gearvrf.mixedreality.GVRAugmentedImage;
 import org.gearvrf.mixedreality.GVRHitResult;
@@ -59,7 +60,6 @@ import org.gearvrf.mixedreality.IAugmentedImageEventsListener;
 import org.gearvrf.mixedreality.ICloudAnchorListener;
 import org.gearvrf.mixedreality.IPlaneEventsListener;
 import org.gearvrf.mixedreality.MRCommon;
-import org.gearvrf.mixedreality.CameraPermissionHelper;
 import org.gearvrf.utility.Log;
 import org.joml.Math;
 import org.joml.Matrix4f;
@@ -228,13 +228,13 @@ public class ARCoreSession extends MRCommon {
         /* Try other aspect ration whether virtual objects looks jumping ou sliding
         during camera's rotation.
          */
-        mSession.setDisplayGeometry(Surface.ROTATION_90 , 160, 90);
+        mSession.setDisplayGeometry(Surface.ROTATION_90, 160, 90);
 
         mLastARFrame = mSession.update();
         mDisplayGeometry = configDisplayGeometry(mLastARFrame.getCamera());
 
-        mSession.setDisplayGeometry(Surface.ROTATION_90 ,
-                (int)mDisplayGeometry.x, (int)mDisplayGeometry.y);
+        mSession.setDisplayGeometry(Surface.ROTATION_90,
+                (int) mDisplayGeometry.x, (int) mDisplayGeometry.y);
 
         /* To render texture from phone's camera */
         mARPassThroughObject = new GVRSceneObject(gvrContext, mDisplayGeometry.x, mDisplayGeometry.y,
@@ -256,6 +256,11 @@ public class ARCoreSession extends MRCommon {
         updateAR2GVRMatrices(mLastARFrame.getCamera(), mVRScene.getMainCameraRig());
     }
 
+    @Override
+    public float[] getCameraPoseMatrix() {
+        return onGetCameraPoseMatrix();
+    }
+
 
     public class ARCoreHandler implements GVRDrawFrameListener {
         @Override
@@ -274,6 +279,8 @@ public class ARCoreSession extends MRCommon {
                 // FIXME: ARCore works at 30fps.
                 return;
             }
+
+            mArCoreHelper.setCamera(arCamera);
 
             if (arCamera.getTrackingState() != TrackingState.TRACKING) {
                 // Put passthrough object in from of current VR cam at paused states.
@@ -330,7 +337,7 @@ public class ARCoreSession extends MRCommon {
         Matrix4f projmtx = new Matrix4f();
         projmtx.set(m);
 
-        float aspectRatio = projmtx.m11()/projmtx.m00();
+        float aspectRatio = projmtx.m11() / projmtx.m00();
         float arCamFOV = projmtx.perspectiveFov();
 
         float quadDistance = PASSTHROUGH_DISTANCE;
@@ -338,8 +345,8 @@ public class ARCoreSession extends MRCommon {
         float quadWidth = quadHeight * aspectRatio;
 
         android.util.Log.d(TAG, "ARCore configured to: passthrough[w: "
-                + quadWidth + ", h: " + quadHeight +", z: " + quadDistance
-                + "], cam fov: " +Math.toDegrees(arCamFOV) + ", aspect ratio: " + aspectRatio);
+                + quadWidth + ", h: " + quadHeight + ", z: " + quadDistance
+                + "], cam fov: " + Math.toDegrees(arCamFOV) + ", aspect ratio: " + aspectRatio);
 
         return new Vector3f(quadWidth, quadHeight, -PASSTHROUGH_DISTANCE);
     }
@@ -388,12 +395,12 @@ public class ARCoreSession extends MRCommon {
         convertMatrixPoseToVector(pose, translation, rotation);
 
         Anchor arAnchor = mSession.createAnchor(new Pose(translation, rotation));
-        mArCoreHelper.updateAnchorPose((ARCoreAnchor)anchor, arAnchor);
+        mArCoreHelper.updateAnchorPose((ARCoreAnchor) anchor, arAnchor);
     }
 
     @Override
     protected void onRemoveAnchor(GVRAnchor anchor) {
-        mArCoreHelper.removeAnchor((ARCoreAnchor)anchor);
+        mArCoreHelper.removeAnchor((ARCoreAnchor) anchor);
     }
 
     /**
@@ -402,7 +409,7 @@ public class ARCoreSession extends MRCommon {
      */
     @Override
     synchronized protected void onHostAnchor(GVRAnchor anchor, ICloudAnchorListener listener) {
-        Anchor newAnchor = mSession.hostCloudAnchor(((ARCoreAnchor)anchor).getAnchorAR());
+        Anchor newAnchor = mSession.hostCloudAnchor(((ARCoreAnchor) anchor).getAnchorAR());
         pendingAnchors.put(newAnchor, listener);
     }
 
@@ -415,7 +422,9 @@ public class ARCoreSession extends MRCommon {
         pendingAnchors.put(newAnchor, listener);
     }
 
-    /** Should be called with the updated anchors available after a {@link Session#update()} call. */
+    /**
+     * Should be called with the updated anchors available after a {@link Session#update()} call.
+     */
     synchronized void updateCloudAnchors(Collection<Anchor> updatedAnchors) {
         for (Anchor anchor : updatedAnchors) {
             if (pendingAnchors.containsKey(anchor)) {
@@ -429,7 +438,9 @@ public class ARCoreSession extends MRCommon {
         }
     }
 
-    /** Used to clear any currently registered listeners, so they wont be called again. */
+    /**
+     * Used to clear any currently registered listeners, so they wont be called again.
+     */
     synchronized void clearListeners() {
         pendingAnchors.clear();
     }
@@ -486,7 +497,7 @@ public class ARCoreSession extends MRCommon {
     @Override
     protected void onSetAugmentedImages(ArrayList<Bitmap> imagesList) {
         AugmentedImageDatabase augmentedImageDatabase = new AugmentedImageDatabase(mSession);
-        for (Bitmap image: imagesList) {
+        for (Bitmap image : imagesList) {
             augmentedImageDatabase.addImage("image_name", image);
         }
 
@@ -542,5 +553,12 @@ public class ARCoreSession extends MRCommon {
         rotation[1] = quaternionRotation.y;
         rotation[2] = quaternionRotation.z;
         rotation[3] = quaternionRotation.w;
+    }
+
+    @Override
+    protected float[] onGetCameraPoseMatrix() {
+        float[] matrix = new float[16];
+        mArCoreHelper.getCamera().getPose().toMatrix(matrix, 0);
+        return matrix;
     }
 }

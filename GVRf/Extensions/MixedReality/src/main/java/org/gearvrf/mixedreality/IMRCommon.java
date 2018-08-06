@@ -38,7 +38,6 @@ public interface IMRCommon {
     void pause();
 
     /**
-     *
      * @return The passthrough object
      */
     GVRSceneObject getPassThroughObject();
@@ -145,7 +144,6 @@ public interface IMRCommon {
     GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y);
 
     /**
-     *
      * @return The light estimate
      */
     GVRLightEstimate getLightEstimate();
@@ -172,4 +170,11 @@ public interface IMRCommon {
     ArrayList<GVRAugmentedImage> getAllAugmentedImages();
 
     float[] makeInterpolated(float[] poseA, float[] poseB, float t);
+
+    /**
+     * Returns a matrix representing the AR camera pose
+     *
+     * @return The matrix representing the AR camera pose
+     */
+    float[] getCameraPoseMatrix();
 }

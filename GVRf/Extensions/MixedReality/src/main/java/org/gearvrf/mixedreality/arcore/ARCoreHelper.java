@@ -17,6 +17,7 @@ package org.gearvrf.mixedreality.arcore;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.AugmentedImage;
+import com.google.ar.core.Camera;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.LightEstimate;
 import com.google.ar.core.Plane;
@@ -53,6 +54,8 @@ public class ARCoreHelper {
     private ArrayList<IPlaneEventsListener> planeEventsListeners = new ArrayList<>();
     private ArrayList<IAnchorEventsListener> anchorEventsListeners = new ArrayList<>();
     private ArrayList<IAugmentedImageEventsListener> augmentedImageEventsListeners = new ArrayList<>();
+
+    private Camera mCamera;// ARCore camera
 
     public ARCoreHelper(GVRContext gvrContext, GVRScene gvrScene) {
         mGvrContext = gvrContext;
@@ -304,5 +307,13 @@ public class ARCoreHelper {
         for (IAugmentedImageEventsListener listener: augmentedImageEventsListeners) {
             listener.onAugmentedImageStateChange(image, trackingState);
         }
+    }
+
+    public void setCamera(Camera camera) {
+        this.mCamera = camera;
+    }
+
+    public Camera getCamera() {
+        return mCamera;
     }
 }
