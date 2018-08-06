@@ -15,6 +15,8 @@
 
 package org.gearvrf.mixedreality;
 
+import android.support.annotation.NonNull;
+
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRSceneObject;
 
@@ -59,6 +61,13 @@ public abstract class GVRPlane extends GVRSceneObject {
      * @return The plane center pose
      */
     public abstract float[] getCenterPose();
+
+    /**
+     * Gets the center pose.
+     *
+     * @param poseOut Array to export the pose to.
+     */
+    public abstract void getCenterPose(@NonNull float[] poseOut);
 
     /**
      * @return The plane type

@@ -15,6 +15,8 @@
 
 package org.gearvrf.mixedreality.arcore;
 
+import android.support.annotation.NonNull;
+
 import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 
@@ -74,6 +76,15 @@ class ARCorePlane extends GVRPlane {
         mARPlane.getCenterPose().toMatrix(centerPose, 0);
         return centerPose;
     }
+
+    @Override
+    public void getCenterPose(@NonNull float[] poseOut) {
+        if(poseOut.length != 16 ){
+            throw new IllegalArgumentException("Array must be 16");
+        }
+        mARPlane.getCenterPose().toMatrix(poseOut, 0);
+    }
+
 
     @Override
     public Type getPlaneType() {
