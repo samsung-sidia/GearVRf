@@ -75,12 +75,17 @@ class MeshExporter(BaseExporter):
 
     def copy_textures(self):
         imgs = set()
-        for ms in self._obj.material_slots:
-            for ts in ms.material.texture_slots:
-                if ts:
-                    if hasattr(ts.texture, 'image'):
-                        img_name = ts.texture.image.filepath[2:]
-                        imgs.add(img_name)
+        obj_hierarchy = []
+        obj_hierarchy.append(self._obj)
+        obj_hierarchy.extend(self._obj.children)
+
+        for current_obj in obj_hierarchy:
+            for ms in current_obj.material_slots:
+                for ts in ms.material.texture_slots:
+                    if ts:
+                        if hasattr(ts.texture, 'image'):
+                            img_name = ts.texture.image.filepath[2:]
+                            imgs.add(img_name)
 
         filepath = bpy.path.abspath('//')
         for img_name in imgs:
