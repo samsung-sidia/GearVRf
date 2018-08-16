@@ -76,7 +76,7 @@ import java.util.List;
 public class ARCoreSession extends MRCommon {
 
     private static float PASSTHROUGH_DISTANCE = 100.0f;
-    private static float AR2VR_SCALE = 100;
+    private static float AR2VR_SCALE = 1;
 
     private Session mSession;
     private boolean mInstallRequested;
@@ -90,10 +90,7 @@ public class ARCoreSession extends MRCommon {
     private boolean mEnableCloudAnchor;
 
     /* From AR to GVR space matrices */
-    private float[] mGVRModelMatrix = new float[16];
-    private float[] mARViewMatrix = new float[16];
     private float[] mGVRCamMatrix = new float[16];
-    private float[] mModelViewMatrix = new float[16];
 
     private Vector3f mDisplayGeometry;
 
@@ -245,15 +242,18 @@ public class ARCoreSession extends MRCommon {
         mARPassThroughObject.getTransform().setPosition(0, 0, mDisplayGeometry.z);
         mARPassThroughObject.attachComponent(new GVRMeshCollider(gvrContext, true));
 
-        mVRScene.addSceneObject(mARPassThroughObject);
+        mVRScene.getMainCameraRig().addChildObject(mARPassThroughObject);
 
         /* AR main loop */
         mARCoreHandler = new ARCoreHandler();
         gvrContext.registerDrawFrameListener(mARCoreHandler);
 
-        mGVRCamMatrix = mVRScene.getMainCameraRig().getHeadTransform().getModelMatrix();
+        final GVRCameraRig cameraRig = mVRScene.getMainCameraRig();
 
-        updateAR2GVRMatrices(mLastARFrame.getCamera(), mVRScene.getMainCameraRig());
+        cameraRig.getHeadTransform().setRotation(1, 0, 0, 0);
+        cameraRig.setCameraRigType(GVRCameraRig.GVRCameraRigType.Freeze.ID);
+
+        syncARCamToVRCam(mLastARFrame.getCamera(), cameraRig);
     }
 
 
@@ -275,49 +275,27 @@ public class ARCoreSession extends MRCommon {
                 return;
             }
 
-            if (arCamera.getTrackingState() != TrackingState.TRACKING) {
-                // Put passthrough object in from of current VR cam at paused states.
-                updateAR2GVRMatrices(arCamera, mVRScene.getMainCameraRig());
-                updatePassThroughObject(mARPassThroughObject);
+            syncARCamToVRCam(arCamera, mVRScene.getMainCameraRig());
 
+            if (arCamera.getTrackingState() != TrackingState.TRACKING) {
                 return;
             }
 
-            // Update current AR cam's view matrix.
-            arCamera.getViewMatrix(mARViewMatrix, 0);
-
-            // Update passthrough object with last VR cam matrix
-            updatePassThroughObject(mARPassThroughObject);
-
-            mArCoreHelper.updatePlanes(mSession.getAllTrackables(Plane.class),
-                    mARViewMatrix, mGVRCamMatrix, AR2VR_SCALE);
+            mArCoreHelper.updatePlanes(mSession.getAllTrackables(Plane.class), AR2VR_SCALE);
 
             mArCoreHelper.updateAugmentedImages(arFrame.getUpdatedTrackables(AugmentedImage.class));
 
-            mArCoreHelper.updateAnchors(mARViewMatrix, mGVRCamMatrix, AR2VR_SCALE);
+            mArCoreHelper.updateAnchors(AR2VR_SCALE);
 
             updateCloudAnchors(arFrame.getUpdatedAnchors());
 
             mLastARFrame = arFrame;
-
-            // Update current VR cam's matrix to next update of passtrhough and virtual objects.
-            // AR/30fps vs VR/60fps
-            mGVRCamMatrix = mVRScene.getMainCameraRig().getHeadTransform().getModelMatrix();
         }
     }
 
-    private void updateAR2GVRMatrices(Camera arCamera, GVRCameraRig cameraRig) {
-        arCamera.getViewMatrix(mARViewMatrix, 0);
-        mGVRCamMatrix = cameraRig.getHeadTransform().getModelMatrix();
-    }
-
-    private void updatePassThroughObject(GVRSceneObject object) {
-        Matrix.setIdentityM(mModelViewMatrix, 0);
-        Matrix.translateM(mModelViewMatrix, 0, 0, 0, mDisplayGeometry.z);
-
-        Matrix.multiplyMM(mGVRModelMatrix, 0, mGVRCamMatrix, 0, mModelViewMatrix, 0);
-
-        object.getTransform().setModelMatrix(mGVRModelMatrix);
+    private void syncARCamToVRCam(Camera arCamera, GVRCameraRig cameraRig) {
+        arCamera.getDisplayOrientedPose().toMatrix(mGVRCamMatrix, 0);
+        cameraRig.getTransform().setModelMatrix(mGVRCamMatrix);
     }
 
     private static Vector3f configDisplayGeometry(Camera arCamera) {
