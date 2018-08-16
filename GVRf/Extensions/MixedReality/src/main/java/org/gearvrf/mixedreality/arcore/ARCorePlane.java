@@ -125,17 +125,15 @@ class ARCorePlane extends GVRPlane {
     /**
      * Update the plane based on arcore best knowledge of the world
      *
-     * @param viewmtx
-     * @param gvrmatrix
      * @param scale
      */
-    protected void update(float[] viewmtx, float[] gvrmatrix, float scale) {
+    protected void update(float scale) {
         // Updates only when the plane is in the scene
         if (getParent() == null || !isEnabled()) {
             return;
         }
 
-        convertFromARtoVRSpace(viewmtx, gvrmatrix, scale);
+        convertFromARtoVRSpace(scale);
 
         if (mSceneObject != null) {
             mSceneObject.getTransform().setScale(mARPlane.getExtentX() * 0.95f,
@@ -146,12 +144,10 @@ class ARCorePlane extends GVRPlane {
     /**
      * Converts from ARCore world space to GVRf's world space.
      *
-     * @param arViewMatrix Phone's camera view matrix
-     * @param vrCamMatrix GVRf Camera matrix
      * @param scale Scale from AR to GVRf world
      */
-    private void convertFromARtoVRSpace(float[] arViewMatrix, float[] vrCamMatrix, float scale) {
-        mPose.update(mARPlane.getCenterPose(), arViewMatrix, vrCamMatrix, scale);
+    private void convertFromARtoVRSpace(float scale) {
+        mPose.update(mARPlane.getCenterPose(), scale);
         getTransform().setModelMatrix(mPose.getPoseMatrix());
     }
 }

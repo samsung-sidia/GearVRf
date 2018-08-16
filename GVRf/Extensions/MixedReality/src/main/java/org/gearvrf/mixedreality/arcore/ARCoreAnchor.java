@@ -86,28 +86,24 @@ public class ARCoreAnchor extends GVRAnchor {
     /**
      * Update the anchor based on arcore best knowledge of the world
      *
-     * @param viewmtx
-     * @param gvrmatrix
      * @param scale
      */
-    protected void update(float[] viewmtx, float[] gvrmatrix, float scale) {
+    protected void update(float scale) {
         // Updates only when the plane is in the scene
         if (getParent() == null || !isEnabled()) {
             return;
         }
 
-        convertFromARtoVRSpace(viewmtx, gvrmatrix, scale);
+        convertFromARtoVRSpace(scale);
     }
 
     /**
      * Converts from ARCore world space to GVRf's world space.
      *
-     * @param arViewMatrix Phone's camera view matrix.
-     * @param vrCamMatrix GVRf Camera matrix.
      * @param scale Scale from AR to GVRf world.
      */
-    protected void convertFromARtoVRSpace(float[] arViewMatrix, float[] vrCamMatrix, float scale) {
-        mPose.update(mAnchor.getPose(), arViewMatrix, vrCamMatrix, scale);
+    protected void convertFromARtoVRSpace(float scale) {
+        mPose.update(mAnchor.getPose(), scale);
         getTransform().setModelMatrix(mPose.getPoseMatrix());
     }
 }

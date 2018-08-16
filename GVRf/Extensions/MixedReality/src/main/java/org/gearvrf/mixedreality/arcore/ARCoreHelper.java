@@ -65,8 +65,7 @@ public class ARCoreHelper {
         mArAnchors = new ArrayList<>();
     }
 
-    public void updatePlanes(Collection<Plane> allPlanes, float[] arViewMatrix,
-                             float[] vrCamMatrix, float scale) {
+    public void updatePlanes(Collection<Plane> allPlanes, float scale) {
         ARCorePlane arCorePlane;
 
         for (Plane plane: allPlanes) {
@@ -77,7 +76,7 @@ public class ARCoreHelper {
 
             arCorePlane = createPlane(plane);
             // FIXME: New planes are updated two times
-            arCorePlane.update(arViewMatrix, vrCamMatrix, scale);
+            arCorePlane.update(scale);
             notifyPlaneDetectionListeners(arCorePlane);
         }
 
@@ -105,7 +104,7 @@ public class ARCoreHelper {
                 notifyMergedPlane(arCorePlane, arCorePlane.getParentPlane());
             }
 
-            arCorePlane.update(arViewMatrix, vrCamMatrix, scale);
+            arCorePlane.update(scale);
         }
     }
 
@@ -145,7 +144,7 @@ public class ARCoreHelper {
         }
     }
 
-    public void updateAnchors(float[] arViewMatrix, float[] vrCamMatrix, float scale) {
+    public void updateAnchors(float scale) {
         for (ARCoreAnchor anchor: mArAnchors) {
             Anchor arAnchor = anchor.getAnchorAR();
 
@@ -165,7 +164,7 @@ public class ARCoreHelper {
                 notifyAnchorStateChangeListeners(anchor, GVRTrackingState.STOPPED);
             }
 
-            anchor.update(arViewMatrix, vrCamMatrix, scale);
+            anchor.update(scale);
         }
     }
 
