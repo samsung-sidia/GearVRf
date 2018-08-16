@@ -44,6 +44,7 @@ import org.gearvrf.GVRDrawFrameListener;
 import org.gearvrf.GVRExternalTexture;
 import org.gearvrf.GVRMaterial;
 import org.gearvrf.GVRMeshCollider;
+import org.gearvrf.GVRPerspectiveCamera;
 import org.gearvrf.GVRPicker;
 import org.gearvrf.GVRRenderData;
 import org.gearvrf.GVRScene;
@@ -228,7 +229,9 @@ public class ARCoreSession extends MRCommon {
         mSession.setDisplayGeometry(Surface.ROTATION_90 , 160, 90);
 
         mLastARFrame = mSession.update();
-        mDisplayGeometry = configDisplayGeometry(mLastARFrame.getCamera());
+        final GVRCameraRig cameraRig = mVRScene.getMainCameraRig();
+
+        mDisplayGeometry = configDisplayGeometry(mLastARFrame.getCamera(), cameraRig);
 
         mSession.setDisplayGeometry(Surface.ROTATION_90 ,
                 (int)mDisplayGeometry.x, (int)mDisplayGeometry.y);
@@ -247,11 +250,6 @@ public class ARCoreSession extends MRCommon {
         /* AR main loop */
         mARCoreHandler = new ARCoreHandler();
         gvrContext.registerDrawFrameListener(mARCoreHandler);
-
-        final GVRCameraRig cameraRig = mVRScene.getMainCameraRig();
-
-        cameraRig.getHeadTransform().setRotation(1, 0, 0, 0);
-        cameraRig.setCameraRigType(GVRCameraRig.GVRCameraRigType.Freeze.ID);
 
         syncARCamToVRCam(mLastARFrame.getCamera(), cameraRig);
     }
@@ -298,7 +296,7 @@ public class ARCoreSession extends MRCommon {
         cameraRig.getTransform().setModelMatrix(mGVRCamMatrix);
     }
 
-    private static Vector3f configDisplayGeometry(Camera arCamera) {
+    private static Vector3f configDisplayGeometry(Camera arCamera, GVRCameraRig cameraRig) {
         float near = 0.1f;
         float far = 100.0f;
 
@@ -315,9 +313,19 @@ public class ARCoreSession extends MRCommon {
         float quadHeight = new Float(2 * quadDistance * Math.tan(arCamFOV * 0.5f));
         float quadWidth = quadHeight * aspectRatio;
 
+        // Use the same fov from AR to VR Camera as default value.
+        float vrFov = (float) Math.toDegrees(arCamFOV);
+        cameraRig.getCenterCamera().setFovY(vrFov);
+        ((GVRPerspectiveCamera)cameraRig.getLeftCamera()).setFovY(vrFov);
+        ((GVRPerspectiveCamera)cameraRig.getRightCamera()).setFovY(vrFov);
+
+        // VR Camera will be updated by AR pose, not by internal sensors.
+        cameraRig.getHeadTransform().setRotation(1, 0, 0, 0);
+        cameraRig.setCameraRigType(GVRCameraRig.GVRCameraRigType.Freeze.ID);
+
         android.util.Log.d(TAG, "ARCore configured to: passthrough[w: "
                 + quadWidth + ", h: " + quadHeight +", z: " + quadDistance
-                + "], cam fov: " +Math.toDegrees(arCamFOV) + ", aspect ratio: " + aspectRatio);
+                + "], cam fov: " +vrFov + ", aspect ratio: " + aspectRatio);
 
         return new Vector3f(quadWidth, quadHeight, -PASSTHROUGH_DISTANCE);
     }
