@@ -81,9 +81,20 @@ class MeshExporter(BaseExporter):
 
         for current_obj in obj_hierarchy:
             for ms in current_obj.material_slots:
+                node_texture = ms.material.node_tree.nodes.get('Image Texture')
+                if node_texture:
+                    if hasattr(node_texture, 'image'):
+                        # TODO: possible unnecessary slice
+                        img_name = node_texture.image.filepath[2:]
+                        imgs.add(img_name)
+
+        # Backward compability with blender render engine
+        for current_obj in obj_hierarchy:
+            for ms in current_obj.material_slots:
                 for ts in ms.material.texture_slots:
                     if ts:
                         if hasattr(ts.texture, 'image'):
+                            # TODO: possible unnecessary slice
                             img_name = ts.texture.image.filepath[2:]
                             imgs.add(img_name)
 
