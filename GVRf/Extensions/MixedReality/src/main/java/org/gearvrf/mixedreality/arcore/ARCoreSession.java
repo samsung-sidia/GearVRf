@@ -77,7 +77,7 @@ import java.util.List;
 public class ARCoreSession extends MRCommon {
 
     private static float PASSTHROUGH_DISTANCE = 100.0f;
-    private static float AR2VR_SCALE = 1;
+    private static float AR2VR_SCALE = 100.0f;
 
     private Session mSession;
     private boolean mInstallRequested;
@@ -292,7 +292,18 @@ public class ARCoreSession extends MRCommon {
     }
 
     private void syncARCamToVRCam(Camera arCamera, GVRCameraRig cameraRig) {
+        float x = mGVRCamMatrix[12];
+        float y = mGVRCamMatrix[13];
+        float z = mGVRCamMatrix[14];
+
         arCamera.getDisplayOrientedPose().toMatrix(mGVRCamMatrix, 0);
+
+        // FIXME: This is a workaround because the AR camera's pose is changing its
+        // position values even if it is stopped! To avoid the scene looks trembling
+        mGVRCamMatrix[12] = (mGVRCamMatrix[12] * AR2VR_SCALE + x) * 0.5f;
+        mGVRCamMatrix[13] = (mGVRCamMatrix[13] * AR2VR_SCALE + y) * 0.5f;
+        mGVRCamMatrix[14] = (mGVRCamMatrix[14] * AR2VR_SCALE + z) * 0.5f;
+
         cameraRig.getTransform().setModelMatrix(mGVRCamMatrix);
     }
 
