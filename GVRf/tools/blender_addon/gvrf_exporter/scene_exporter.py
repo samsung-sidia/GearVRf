@@ -81,12 +81,13 @@ class MeshExporter(BaseExporter):
 
         for current_obj in obj_hierarchy:
             for ms in current_obj.material_slots:
-                node_texture = ms.material.node_tree.nodes.get('Image Texture')
-                if node_texture:
-                    if hasattr(node_texture, 'image'):
-                        # TODO: possible unnecessary slice
-                        img_name = node_texture.image.filepath[2:]
-                        imgs.add(img_name)
+                node_tree = ms.material.node_tree
+                if node_tree:
+                    node_texture = node_tree.nodes.get('Image Texture')
+                    if node_texture:
+                        if hasattr(node_texture, 'image'):
+                            img_name = node_texture.image.filepath
+                            imgs.add(img_name)
 
         # Backward compability with blender render engine
         for current_obj in obj_hierarchy:
@@ -94,19 +95,19 @@ class MeshExporter(BaseExporter):
                 for ts in ms.material.texture_slots:
                     if ts:
                         if hasattr(ts.texture, 'image'):
-                            # TODO: possible unnecessary slice
-                            img_name = ts.texture.image.filepath[2:]
+                            img_name = ts.texture.image.filepath
                             imgs.add(img_name)
 
+        # TODO: verify if this atribution is necessary
         filepath = bpy.path.abspath('//')
         for img_name in imgs:
             bn = os.path.basename(img_name)
-            abspath = os.path.abspath(os.path.join(filepath, img_name))
+            dstpath = os.path.abspath(os.path.join(filepath, bn))
             try:
-                if not os.path.exists(bn) or not filecmp.cmp(abspath, bn):
-                    shutil.copy(abspath, bn)
+                if not os.path.exists(dstpath) or not filecmp.cmp(dstpath, img_name):
+                    shutil.copy(img_name, dstpath)
             except FileNotFoundError:
-                print('Cannot find the texture file "%s"' % abspath)
+                print('Cannot find the texture file "%s"' % img_name)
 
 class LightExporter(BaseExporter):
     def __init__(self, client, obj):
