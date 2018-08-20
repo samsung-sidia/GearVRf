@@ -614,8 +614,8 @@ public class GVRViewSceneObject extends GVRSceneObject {
         // Set the default size of the image buffers.
         // Call this after render data is ready
         public void setTextureBufferSize(int size) {
-            final GVRRenderData rdata = mSceneObject.getRenderData();
-            if (rdata != null) {
+            if (mSurfaceTexture != null) {
+                final GVRRenderData rdata = mSceneObject.getRenderData();
                 final GVRMaterial material = rdata.getMaterial();
                 final float frameWidth = getWidth();
                 final float frameHeight = getHeight();
@@ -689,19 +689,28 @@ public class GVRViewSceneObject extends GVRSceneObject {
             mGVRContext.runOnTheFrameworkThread(new Runnable() {
                 @Override
                 public void run() {
+                    // Because GVRTexture:getId() may cause deadlock at UI thread!
+                    createSurfaceTexture();
+
                     mSceneObject.onStartRendering();
+
+                    // FIXME: This may cause some black texture at first frames
+                    mGVRContext.getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            onViewVisible();
+                        }
+                    });
                 }
             });
+        }
 
+        private void onViewVisible() {
             // To call draw(...) after renderData has been created
             if (mSceneObject.getParent() != null) {
                 setVisibility(VISIBLE);
             }
 
-            onViewVisible();
-        }
-
-        private void onViewVisible() {
             /**
              * To adjust the default buffer size of the surface texture according to
              * changes of layout's size.
@@ -744,8 +753,13 @@ public class GVRViewSceneObject extends GVRSceneObject {
 
             mSceneObject.getRenderData().setMaterial(material);
             mSceneObject.attachComponent(collider);
+        }
 
-            mSurfaceTexture = new SurfaceTexture(texture.getId());
+        private void createSurfaceTexture() {
+            final GVRRenderData rdata = mSceneObject.getRenderData();
+
+            // FIXME: GVRTexture:getId() may cause deadlock at UI thread!
+            mSurfaceTexture = new SurfaceTexture(rdata.getMaterial().getMainTexture().getId());
             mSurface = new Surface(mSurfaceTexture);
             mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                 Runnable onFrameAvailableGLCallback = new Runnable() {
