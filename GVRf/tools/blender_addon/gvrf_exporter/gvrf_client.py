@@ -76,6 +76,9 @@ class GvrfClient(BaseClient):
         self.exec_command(gvrf_commands.get_scene())
         self.exec_command(gvrf_commands.get_camera())
 
+    def delete_object(self, obj):
+        self.exec_command(gvrf_commands.remove_scene_obj(obj))
+
     def clear_scene(self):
         self.exec_command(gvrf_commands.clear_scene())
 

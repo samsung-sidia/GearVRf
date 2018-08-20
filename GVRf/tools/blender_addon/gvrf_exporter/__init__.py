@@ -56,6 +56,7 @@ class SceneExporterPanel(bpy.types.Panel):
         column.prop(context.scene, 'globalscale')
         column.prop(context.scene, 'selectedobjects')
         column.operator('export.gvrf', text='Export')
+        column.operator('delete.gvrf', text='Delete selected objects')
         column.operator('clearscene.gvrf', text='Clear Scene')
 
 
@@ -78,6 +79,27 @@ class SceneExporter(bpy.types.Operator):
             scene_exporter.export(
                 GvrfClient(_addr, _port, do_debug=True), fs.get_url(), selected_objects=_selected_objects,
                 globalscale=_global_scale)
+        except TimeoutError:
+            self.report(
+                {'ERROR'}, 'Connection attempt failed. Check the clinet\'s IP address and if the gvr-remote-scripting'
+                + 'application is running.')
+
+        return {'FINISHED'}
+
+
+class DeleteObjects(bpy.types.Operator):
+    """Delete selected object on GVRf scene"""
+    bl_idname = 'delete.gvrf'
+    bl_label = 'Delete selected object'
+    bl_options = {'UNDO'}
+
+    def invoke(self, context, event):
+        # IP and port of gvrf client device
+        _addr = context.scene.clientip
+        _port = 1645
+
+        try:
+            scene_exporter.delete_objects(GvrfClient(_addr, _port, do_debug=True))
         except TimeoutError:
             self.report(
                 {'ERROR'}, 'Connection attempt failed. Check the clinet\'s IP address and if the gvr-remote-scripting'
@@ -125,6 +147,7 @@ def change_dir(self, context):
 def register():
     bpy.utils.register_class(SceneExporterPanel)
     bpy.utils.register_class(SceneExporter)
+    bpy.utils.register_class(DeleteObjects)
     bpy.utils.register_class(SceneClear)
     bpy.types.Scene.dirpath = bpy.props.StringProperty(
         name='Export Dir', description='', default=default_dirpath, subtype='DIR_PATH', update=change_dir)
@@ -142,9 +165,11 @@ def register():
 def unregister():
     bpy.utils.unregister_class(SceneExporterPanel)
     bpy.utils.unregister_class(SceneExporter)
+    bpy.utils.unregister_class(DeleteObjects)
     bpy.utils.unregister_class(SceneClear)
     del bpy.types.Scene.dirpath
     del bpy.types.Scene.clientip
+    del pby.types.Scene.globalscale
     del bpy.types.Scene.selectedobjects
 
 
