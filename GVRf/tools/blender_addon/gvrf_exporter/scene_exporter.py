@@ -70,7 +70,7 @@ class MeshExporter(BaseExporter):
         # Export fbx file
         bpy.ops.export_scene.fbx(
             filepath=name, use_selection=True, object_types={'MESH', 'ARMATURE'}, path_mode='STRIP',
-            global_scale=self._globalscale)
+            global_scale=self._globalscale, bake_anim_use_nla_strips=False, bake_anim_use_all_actions=False)
         self.copy_textures()
 
     def copy_textures(self):
@@ -273,6 +273,48 @@ def export(client, server_url, selected_objects, globalscale):
     client.disconnect()
 
     scene.objects.active = obj_active
+
+    for obj in selection:
+        obj.select = True
+
+
+def delete_objects(client):
+    scene = bpy.context.scene
+    selection = bpy.context.selected_objects
+
+    for obj in scene.objects:
+        obj.select = False
+
+    # Group parents
+    root_objects = []
+    for obj in scene.objects:
+        if obj.parent not in selection:
+            root_objects.append(obj)
+
+    for obj in root_objects:
+        if obj not in selection:
+            continue
+
+        obj.select = True
+
+        for child in obj.children:
+            if child not in selection:
+                continue
+
+            child.select = True
+
+        name = bpy.path.clean_name(obj.name) + ".fbx"
+        client.delete_object(name)
+
+        for child in obj.children:
+            if child not in selection:
+                continue
+
+            child.select = False
+
+        obj.select = False
+
+    client.disconnect()
 
     for obj in selection:
         obj.select = True
