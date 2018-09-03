@@ -17,7 +17,6 @@ package org.gearvrf.mixedreality.arcore;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.opengl.Matrix;
 import android.view.Surface;
 
 import com.google.ar.core.Anchor;
@@ -378,14 +377,14 @@ public class ARCoreSession extends MRCommon {
     }
 
     @Override
-    protected GVRAnchor onCreateAnchor(float[] pose, GVRSceneObject sceneObject) {
+    protected GVRAnchor onCreateAnchor(float[] pose) {
         float[] translation = new float[3];
         float[] rotation = new float[4];
 
         convertMatrixPoseToVector(pose, translation, rotation);
 
         Anchor anchor = mSession.createAnchor(new Pose(translation, rotation));
-        return mArCoreHelper.createAnchor(anchor, sceneObject);
+        return mArCoreHelper.createAnchor(anchor);
     }
 
     @Override
@@ -432,7 +431,7 @@ public class ARCoreSession extends MRCommon {
                 Anchor.CloudAnchorState cloudState = anchor.getCloudAnchorState();
                 if (isReturnableState(cloudState)) {
                     ICloudAnchorListener listener = pendingAnchors.remove(anchor);
-                    GVRAnchor newAnchor = mArCoreHelper.createAnchor(anchor, null);
+                    GVRAnchor newAnchor = mArCoreHelper.createAnchor(anchor);
                     listener.onTaskComplete(newAnchor);
                 }
             }

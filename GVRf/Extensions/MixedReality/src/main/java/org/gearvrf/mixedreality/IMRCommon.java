@@ -79,15 +79,6 @@ public interface IMRCommon {
     GVRAnchor createAnchor(float[] pose);
 
     /**
-     * Create an anchor on pose specified and associate to the sceneObject
-     *
-     * @param pose
-     * @param sceneObject
-     * @return The anchor created
-     */
-    GVRAnchor createAnchor(float[] pose, GVRSceneObject sceneObject);
-
-    /**
      * Update the pose of an anchor
      *
      * @param anchor

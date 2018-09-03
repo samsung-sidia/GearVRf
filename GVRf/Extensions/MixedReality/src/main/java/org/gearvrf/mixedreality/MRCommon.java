@@ -69,12 +69,7 @@ public abstract class MRCommon implements IMRCommon {
 
     @Override
     public GVRAnchor createAnchor(float[] pose) {
-        return onCreateAnchor(pose, null);
-    }
-
-    @Override
-    public GVRAnchor createAnchor(float[] pose, GVRSceneObject sceneObject) {
-        return onCreateAnchor(pose, sceneObject);
+        return onCreateAnchor(pose);
     }
 
     @Override
@@ -155,7 +150,7 @@ public abstract class MRCommon implements IMRCommon {
 
     protected abstract ArrayList<GVRPlane> onGetAllPlanes();
 
-    protected abstract GVRAnchor onCreateAnchor(float[] pose, GVRSceneObject sceneObject);
+    protected abstract GVRAnchor onCreateAnchor(float[] pose);
 
     protected abstract void onUpdateAnchorPose(GVRAnchor anchor, float[] pose);
 

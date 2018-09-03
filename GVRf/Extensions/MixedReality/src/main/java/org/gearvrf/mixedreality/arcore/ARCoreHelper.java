@@ -199,14 +199,10 @@ public class ARCoreHelper {
         return arCoreAugmentedImage;
     }
 
-    public GVRAnchor createAnchor(Anchor arAnchor, GVRSceneObject sceneObject) {
+    public GVRAnchor createAnchor(Anchor arAnchor) {
         ARCoreAnchor arCoreAnchor = new ARCoreAnchor(mGvrContext);
         arCoreAnchor.setAnchorAR(arAnchor);
         mArAnchors.add(arCoreAnchor);
-
-        if (sceneObject != null) {
-            arCoreAnchor.attachSceneObject(sceneObject);
-        }
 
         return arCoreAnchor;
     }

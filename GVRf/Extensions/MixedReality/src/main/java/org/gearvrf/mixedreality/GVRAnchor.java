@@ -38,6 +38,15 @@ public abstract class GVRAnchor extends GVRSceneObject {
     }
 
     /**
+     * Detach a scene object from this anchor position
+     *
+     * @param obj
+     */
+    public void detachSceneObject(GVRSceneObject obj) {
+        removeChildObject(obj);
+    }
+
+    /**
      *
      * @return The anchor tracking state
      */

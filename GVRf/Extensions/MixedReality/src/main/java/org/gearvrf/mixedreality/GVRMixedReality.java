@@ -137,21 +137,12 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
         return mSession.getAllPlanes();
     }
 
-
     @Override
     public GVRAnchor createAnchor(float[] pose) {
         if (mState == SessionState.ON_PAUSE) {
             throw new UnsupportedOperationException("Session is not resumed");
         }
         return mSession.createAnchor(pose);
-    }
-
-    @Override
-    public GVRAnchor createAnchor(float[] pose, GVRSceneObject sceneObject) {
-        if (mState == SessionState.ON_PAUSE) {
-            throw new UnsupportedOperationException("Session is not resumed");
-        }
-        return mSession.createAnchor(pose, sceneObject);
     }
 
     @Override
