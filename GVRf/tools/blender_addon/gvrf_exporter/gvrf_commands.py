@@ -16,6 +16,8 @@ _var_context = 'gvrf'
 _var_scene = 'scene'
 _var_camera = 'camera'
 _var_animator = 'animator'
+_var_material = 'material'
+_var_settings = 'settings'
 
 
 def import_package():
@@ -24,6 +26,10 @@ def import_package():
 
 def import_package_animation():
     return 'importPackage(org.gearvrf.animation);'
+
+
+def import_package_javautil():
+    return 'importPackage(java.util);'
 
 
 def get_scene():
@@ -42,8 +48,32 @@ def create_url(var_url, url):
     return 'var %s = new java.net.URL("%s");' % (var_url, url)
 
 
+def create_matcap_material():
+    return 'var %s = new GVRMaterial(%s, GVRMaterial.GVRShaderType.Matcap.ID);' % (_var_material, _var_context)
+
+
+def set_notexture_import_settings():
+    return 'var %s = GVRImportSettings.getRecommendedSettingsWith(EnumSet.of(GVRImportSettings.NO_TEXTURING));' % _var_settings
+
+
+def set_material_texture(var_texture):
+    return '%s.setMainTexture(%s);' % (_var_material, var_texture)
+
+
+def set_matcap_material(var_obj):
+    return '%s.changeMaterialOnHierarchy(%s);' % (var_obj, _var_material)
+
+
+def load_texture_from_url(var_tex, var_url):
+    return 'var %s = %s.getAssetLoader().loadTexture(new GVRAndroidResource(%s, %s));' % (var_tex, _var_context, _var_context, var_url)
+
+
 def load_model_from_url(var_obj, var_url):
     return 'var %s = %s.getAssetLoader().loadModel(%s, %s);' % (var_obj, _var_context, var_url, _var_scene)
+
+
+def load_model_from_url_without_texture(var_obj, var_url):
+    return 'var %s = %s.getAssetLoader().loadModel(%s, %s, true, %s);' % (var_obj, _var_context, var_url, _var_settings, _var_scene)
 
 
 def create_scene_obj(var_obj):

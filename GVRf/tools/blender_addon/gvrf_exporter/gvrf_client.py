@@ -73,8 +73,11 @@ class GvrfClient(BaseClient):
     def prepare_scene(self):
         self.exec_command(gvrf_commands.import_package())
         self.exec_command(gvrf_commands.import_package_animation())
+        self.exec_command(gvrf_commands.import_package_javautil())
         self.exec_command(gvrf_commands.get_scene())
         self.exec_command(gvrf_commands.get_camera())
+        self.exec_command(gvrf_commands.set_notexture_import_settings())
+        self.exec_command(gvrf_commands.create_matcap_material())
 
     def delete_object(self, obj):
         self.exec_command(gvrf_commands.remove_scene_obj(obj))
@@ -82,12 +85,24 @@ class GvrfClient(BaseClient):
     def clear_scene(self):
         self.exec_command(gvrf_commands.clear_scene())
 
-    def load_mesh(self, url, name, is_animated):
+    def load_mesh(self, url, name, use_matcap, is_animated, server_url):
         var_url = 'url'
         var_obj = 'obj'
+        var_tex = 'texture'
+        var_tex_url = 'tex_url'
         self.exec_command(gvrf_commands.create_url(var_url, url))
         self.exec_command(gvrf_commands.remove_scene_obj(name))
-        self.exec_command(gvrf_commands.load_model_from_url(var_obj, var_url))
+        
+        if use_matcap:
+            tex_url = server_url + 'generator3.jpg'
+            self.exec_command(gvrf_commands.create_url(var_tex_url, tex_url))
+            self.exec_command(gvrf_commands.load_texture_from_url(var_tex, var_tex_url))
+            self.exec_command(gvrf_commands.load_model_from_url_without_texture(var_obj, var_url))
+            self.exec_command(gvrf_commands.set_material_texture(var_tex))
+            self.exec_command(gvrf_commands.set_matcap_material(var_obj))
+        else:
+            self.exec_command(gvrf_commands.load_model_from_url(var_obj, var_url))
+        
         if is_animated:
             self.exec_command(gvrf_commands.get_animator(var_obj))
             self.exec_command(gvrf_commands.animator_start())

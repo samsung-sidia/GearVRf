@@ -55,6 +55,7 @@ class SceneExporterPanel(bpy.types.Panel):
         column.prop(context.scene, 'clientip')
         column.prop(context.scene, 'globalscale')
         column.prop(context.scene, 'selectedobjects')
+        column.prop(context.scene, 'matcap')
         column.operator('export.gvrf', text='Export')
         column.operator('delete.gvrf', text='Delete selected objects')
         column.operator('clearscene.gvrf', text='Clear Scene')
@@ -74,11 +75,12 @@ class SceneExporter(bpy.types.Operator):
         _port = 1645
         _selected_objects = context.scene.selectedobjects
         _global_scale = context.scene.globalscale
+        _use_matcap = context.scene.matcap
 
         try:
             scene_exporter.export(
                 GvrfClient(_addr, _port, do_debug=True), fs.get_url(), selected_objects=_selected_objects,
-                globalscale=_global_scale)
+                globalscale=_global_scale, use_matcap=_use_matcap)
         except TimeoutError:
             self.report(
                 {'ERROR'}, 'Connection attempt failed. Check the clinet\'s IP address and if the gvr-remote-scripting'
@@ -161,6 +163,9 @@ def register():
     bpy.types.Scene.selectedobjects = bpy.props.BoolProperty(
         name='Selected Objects', description='', default=False)
 
+    bpy.types.Scene.matcap = bpy.props.BoolProperty(
+        name='Use Matcap', description='', default=False)
+
 
 def unregister():
     bpy.utils.unregister_class(SceneExporterPanel)
@@ -169,8 +174,9 @@ def unregister():
     bpy.utils.unregister_class(SceneClear)
     del bpy.types.Scene.dirpath
     del bpy.types.Scene.clientip
-    del pby.types.Scene.globalscale
+    del bpy.types.Scene.globalscale
     del bpy.types.Scene.selectedobjects
+    del bpy.types.Scene.matcap
 
 
 if __name__ == '__main__':
