@@ -1297,6 +1297,26 @@ public class GVRSceneObject extends GVRHybridObject implements PrettyPrint, IScr
     public final BoundingVolume expandBoundingVolume(final Vector3f center, final float radius) {
         return expandBoundingVolume(center.x, center.y, center.z, radius);
     }
+
+    /**
+     * Change all material on a scene object hierarchy.
+     * FIXME: Find a better place to put or this method.
+     * @param material
+     */
+    public void changeMaterialOnHierarchy(final GVRMaterial material) {
+        forAllDescendants(new GVRSceneObject.SceneVisitor() {
+            @Override
+            public boolean visit(GVRSceneObject childObject) {
+                GVRRenderData renderData
+                        = (GVRRenderData) childObject.getComponent(GVRRenderData.getComponentType());
+                if (renderData == null || renderData.getMesh() == null)
+                    return true;
+
+                childObject.getRenderData().setMaterial(material);
+                return false;
+            }
+        });
+    }
 }
 
 class NativeSceneObject {
