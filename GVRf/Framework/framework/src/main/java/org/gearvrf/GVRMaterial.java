@@ -21,6 +21,7 @@ import org.gearvrf.shaders.GVRCubemapReflectionShader;
 import org.gearvrf.shaders.GVRCubemapShader;
 import org.gearvrf.shaders.GVRHorizontalFlipShader;
 import org.gearvrf.shaders.GVRLightmapShader;
+import org.gearvrf.shaders.GVRMatcapShader;
 import org.gearvrf.shaders.GVROESHorizontalStereoShader;
 import org.gearvrf.shaders.GVROESShader;
 import org.gearvrf.shaders.GVROESVerticalStereoShader;
@@ -142,6 +143,10 @@ public class GVRMaterial extends  GVRShaderData
 
         public abstract static class ColorBlend {
             public static final GVRShaderId ID = new GVRShaderId(GVRColorBlendShader.class);
+        }
+
+        public abstract static class Matcap {
+            public static final GVRShaderId ID = new GVRShaderId(GVRMatcapShader.class);
         }
 
     };
