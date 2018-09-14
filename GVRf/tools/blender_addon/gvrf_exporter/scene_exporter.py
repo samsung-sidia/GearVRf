@@ -51,29 +51,45 @@ class BaseExporter(ABC):
 
 
 class MeshExporter(BaseExporter):
-    def __init__(self, client, server_url, obj, use_matcap, globalscale=0.01, is_animated=False):
+    def __init__(self, client, server_url, obj, use_matcap, matcap_file, globalscale=0.01, is_animated=False):
         self._client = client
         self._server_url = server_url
         self._obj = obj
         self._use_matcap = use_matcap
+        self._matcap_file = matcap_file
         self._globalscale = globalscale
         self._is_animated = is_animated
         self.export()
 
     def export(self):
         name = bpy.path.clean_name(self._obj.name) + ".fbx"
+        matcap_name = os.path.basename(self._matcap_file)
         url = self._server_url + name
+        matcap_url = self._server_url + matcap_name
 
         self.export_to_file(name)
-        self._client.load_mesh(url, name, self._use_matcap, self._is_animated, self._server_url)
+        self._client.load_mesh(url, name, self._use_matcap, matcap_url, self._is_animated)
 
     def export_to_file(self, name):
         # Export fbx file
         bpy.ops.export_scene.fbx(
             filepath=name, use_selection=True, object_types={'MESH', 'ARMATURE'}, path_mode='STRIP',
             global_scale=self._globalscale, bake_anim_use_nla_strips=False, bake_anim_use_all_actions=False)
-        if not self._use_matcap:
+        if self._use_matcap:
+            self.copy_matcap_texture()
+        else:
             self.copy_textures()
+
+    def copy_matcap_texture(self):
+        # TODO: verify if this atribution is necessary
+        filepath = bpy.path.abspath('//')
+        bn = os.path.basename(self._matcap_file)
+        dstpath = os.path.abspath(os.path.join(filepath, bn))
+        try:
+            if not os.path.exists(dstpath) or not filecmp.cmp(dstpath, self._matcap_file):
+                shutil.copy(self._matcap_file, dstpath)
+        except FileNotFoundError:
+            print('Cannot find the texture file "%s"' % self._matcap_file)
 
     def copy_textures(self):
         imgs = set()
@@ -221,7 +237,7 @@ class CameraExporter(BaseExporter):
         }, indent=4)
 
 
-def export(client, server_url, selected_objects, globalscale, use_matcap):
+def export(client, server_url, selected_objects, globalscale, use_matcap, matcap_file):
     scene = bpy.context.scene
     obj_active = scene.objects.active
 
@@ -256,9 +272,9 @@ def export(client, server_url, selected_objects, globalscale, use_matcap):
         scene.objects.active = obj
 
         if obj.type == 'ARMATURE':
-            MeshExporter(client, server_url, obj, use_matcap, globalscale, is_animated=True)
+            MeshExporter(client, server_url, obj, use_matcap, matcap_file, globalscale, is_animated=True)
         elif obj.type == 'MESH':
-            MeshExporter(client, server_url, obj, use_matcap, globalscale)
+            MeshExporter(client, server_url, obj, use_matcap, matcap_file, globalscale)
         elif obj.type == 'LAMP':
             LightExporter(client, obj)
         elif obj.type == 'CAMERA':
