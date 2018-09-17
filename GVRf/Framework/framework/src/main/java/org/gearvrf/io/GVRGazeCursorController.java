@@ -153,12 +153,15 @@ final public class GVRGazeCursorController extends GVRCursorController
             final GVRPerspectiveCamera cam
                     = getGVRContext().getMainScene().getMainCameraRig().getCenterCamera();
             final float aspect = cam.getAspectRatio();
+            final float near = cam.getNearClippingDistance();
             final double fov = Math.toRadians(cam.getFovY());
-            final float z = (float) (0.5f / Math.tan(fov * 0.5f));
-            final float x = (eventX / mDisplayWidth - 0.5f) / z;
-            final float y = (0.5f - eventY / mDisplayHeight) / aspect / z;
+            final float h = (float)(near * Math.tan(fov * 0.5f));
+            final float w = aspect * h;
 
-            pickDir.set(x / z, y / z, -1);
+            final float x = (eventX / mDisplayWidth - 0.5f) * w * 2;
+            final float y = (0.5f - eventY / mDisplayHeight) *  h * 2;
+
+            pickDir.set(x / near, y / near, -1);
         }
 
         setMotionEvent(event);
