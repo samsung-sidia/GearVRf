@@ -53,6 +53,11 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
+    public void unregisterPlaneListener(IPlaneEventsListener listener) {
+        onUnregisterPlaneListener(listener);
+    }
+
+    @Override
     public void registerAnchorListener(IAnchorEventsListener listener) {
         onRegisterAnchorListener(listener);
     }
@@ -143,6 +148,8 @@ public abstract class MRCommon implements IMRCommon {
     protected abstract GVRSceneObject onGetPassThroughObject();
 
     protected abstract void onRegisterPlaneListener(IPlaneEventsListener listener);
+
+    protected abstract void onUnregisterPlaneListener(IPlaneEventsListener listener);
 
     protected abstract void onRegisterAnchorListener(IAnchorEventsListener listener);
 

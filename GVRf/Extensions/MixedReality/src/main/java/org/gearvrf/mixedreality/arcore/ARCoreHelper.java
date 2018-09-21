@@ -260,6 +260,10 @@ public class ARCoreHelper {
         planeEventsListeners.add(listener);
     }
 
+    public void unregisterPlaneListener(IPlaneEventsListener listener) {
+        planeEventsListeners.remove(listener);
+    }
+
     public void registerAnchorListener(IAnchorEventsListener listener) {
         anchorEventsListeners.add(listener);
     }

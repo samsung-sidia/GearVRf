@@ -50,6 +50,13 @@ public interface IMRCommon {
     void registerPlaneListener(IPlaneEventsListener listener);
 
     /**
+     * Unregister a listener to GVRPlane events.
+     *
+     * @param listener
+     */
+    void unregisterPlaneListener(IPlaneEventsListener listener);
+
+    /**
      * Register a listener to GVRAnchor events.
      *
      * @param listener

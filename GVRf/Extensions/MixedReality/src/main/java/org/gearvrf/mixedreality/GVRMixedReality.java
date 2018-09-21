@@ -120,6 +120,11 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
+    public void unregisterPlaneListener(IPlaneEventsListener listener) {
+        mSession.unregisterPlaneListener(listener);
+    }
+
+    @Override
     public void registerAnchorListener(IAnchorEventsListener listener) {
         mSession.registerAnchorListener(listener);
     }

@@ -364,6 +364,11 @@ public class ARCoreSession extends MRCommon {
     }
 
     @Override
+    protected void onUnregisterPlaneListener(IPlaneEventsListener listener) {
+        mArCoreHelper.unregisterPlaneListener(listener);
+    }
+
+    @Override
     protected void onRegisterAnchorListener(IAnchorEventsListener listener) {
         mArCoreHelper.registerAnchorListener(listener);
     }
