@@ -17,6 +17,7 @@ package org.gearvrf.mixedreality.arcore;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.util.DisplayMetrics;
 import android.view.Surface;
 
 import com.google.ar.core.Anchor;
@@ -74,8 +75,6 @@ import java.util.List;
 
 
 public class ARCoreSession extends MRCommon {
-
-    private static float PASSTHROUGH_DISTANCE = 100.0f;
     private static float AR2VR_SCALE = 100.0f;
 
     private Session mSession;
@@ -221,11 +220,7 @@ public class ARCoreSession extends MRCommon {
 
         mSession.setCameraTextureName(passThroughTexture.getId());
 
-        // FIXME: detect VR screen aspect ratio. Using empirical 16:9 aspect ratio
-        /* Try other aspect ration whether virtual objects looks jumping ou sliding
-        during camera's rotation.
-         */
-        mSession.setDisplayGeometry(Surface.ROTATION_90, 160, 90);
+        configDisplayAspectRatio(mGvrContext.getActivity());
 
         mLastARFrame = mSession.update();
         final GVRCameraRig cameraRig = mVRScene.getMainCameraRig();
@@ -313,9 +308,16 @@ public class ARCoreSession extends MRCommon {
         cameraRig.getTransform().setModelMatrix(mGVRCamMatrix);
     }
 
-    private static Vector3f configDisplayGeometry(Camera arCamera, GVRCameraRig cameraRig) {
-        float near = 0.1f;
-        float far = 100.0f;
+    private void configDisplayAspectRatio(Activity activity) {
+        final DisplayMetrics metrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+        mSession.setDisplayGeometry(Surface.ROTATION_90, metrics.widthPixels, metrics.heightPixels);
+    }
+
+    private  static Vector3f configDisplayGeometry(Camera arCamera, GVRCameraRig cameraRig) {
+        GVRPerspectiveCamera centerCamera = cameraRig.getCenterCamera();
+        float near = centerCamera.getNearClippingDistance();
+        float far = centerCamera.getFarClippingDistance();
 
         // Get phones' cam projection matrix.
         float[] m = new float[16];
@@ -326,7 +328,7 @@ public class ARCoreSession extends MRCommon {
         float aspectRatio = projmtx.m11() / projmtx.m00();
         float arCamFOV = projmtx.perspectiveFov();
 
-        float quadDistance = PASSTHROUGH_DISTANCE;
+        float quadDistance = far - 1;
         float quadHeight = new Float(2 * quadDistance * Math.tan(arCamFOV * 0.5f));
         float quadWidth = quadHeight * aspectRatio;
 
@@ -342,7 +344,7 @@ public class ARCoreSession extends MRCommon {
                 + quadWidth + ", h: " + quadHeight +", z: " + quadDistance
                 + "], cam fov: " +vrFov + ", aspect ratio: " + aspectRatio);
 
-        return new Vector3f(quadWidth, quadHeight, -PASSTHROUGH_DISTANCE);
+        return new Vector3f(quadWidth, quadHeight, -quadDistance);
     }
 
     private static void setVRCameraFov(GVRCameraRig camRig, float degreesFov) {

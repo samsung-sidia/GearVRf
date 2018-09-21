@@ -85,7 +85,6 @@ class ARCorePlane extends GVRPlane {
         mARPlane.getCenterPose().toMatrix(poseOut, 0);
     }
 
-
     @Override
     public Type getPlaneType() {
         return mType;
