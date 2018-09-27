@@ -540,7 +540,7 @@ public final class GVRApplication implements IEventReceiver, IScriptable {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (null != mRenderableViewGroup) {
+                if (null != mRenderableViewGroup && view.getParent() != mRenderableViewGroup) {
                     /* The full screen should be updated otherwise just the children's bounds may be refreshed. */
                     mRenderableViewGroup.setClipChildren(false);
                     mRenderableViewGroup.addView(view);
@@ -558,7 +558,7 @@ public final class GVRApplication implements IEventReceiver, IScriptable {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (null != mRenderableViewGroup) {
+                if (null != mRenderableViewGroup && view.getParent() == mRenderableViewGroup) {
                     mRenderableViewGroup.removeView(view);
                 }
             }
