@@ -194,6 +194,12 @@ public class GVRViewSceneObject extends GVRSceneObject {
         super(gvrContext, mesh);
         final GVRApplication application = gvrContext.getApplication();
 
+        // FIXME: GVRTexture:getId() may cause deadlock at UI thread!
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            // Going to deadlock!
+            throw new UnsupportedOperationException("Creation of GVRViewSceneObject on UI Thread!");
+        }
+
         mEventsListener = eventsListener;
 
         mRootViewGroup = new RootViewGroup(application, this);
@@ -623,7 +629,6 @@ public class GVRViewSceneObject extends GVRSceneObject {
         private void createSurfaceTexture() {
             final GVRRenderData rdata = mSceneObject.getRenderData();
 
-            // FIXME: GVRTexture:getId() may cause deadlock at UI thread!
             mSurfaceTexture = new SurfaceTexture(rdata.getMaterial().getMainTexture().getId());
             mSurface = new Surface(mSurfaceTexture);
             mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
