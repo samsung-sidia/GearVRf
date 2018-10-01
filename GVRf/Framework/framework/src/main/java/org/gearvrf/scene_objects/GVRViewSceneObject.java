@@ -190,7 +190,7 @@ public class GVRViewSceneObject extends GVRSceneObject {
     }
 
     private GVRViewSceneObject(GVRContext gvrContext, final View view, final int viewId,
-                               IViewEvents eventsListener, GVRMesh mesh) {
+                               IViewEvents eventsListener, final GVRMesh mesh) {
         super(gvrContext, mesh);
         final GVRApplication application = gvrContext.getApplication();
 
@@ -202,13 +202,61 @@ public class GVRViewSceneObject extends GVRSceneObject {
 
         mEventsListener = eventsListener;
 
-        mRootViewGroup = new RootViewGroup(application, this);
+        mRootViewGroup = new RootViewGroup(application);
 
-        if (viewId != View.NO_ID) {
-            addView(application, viewId);
-        } else {
-            addView(application, view);
+        createRenderData(gvrContext);
+
+        gvrContext.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (viewId != View.NO_ID) {
+                    addView(application, viewId);
+                } else {
+                    addView(application, view);
+                }
+
+                if (mesh == null) {
+                    adjustQuadAspectRatio();
+                }
+            }
+        });
+    }
+
+    private void createRenderData(GVRContext gvrContext) {
+        final GVRTexture texture = new GVRExternalTexture(gvrContext);
+        final GVRMaterial material = new GVRMaterial(gvrContext,
+                new GVRShaderId(GVROESConvolutionShader.class));
+        GVRRenderData renderData = getRenderData();
+
+        if (renderData == null) {
+            renderData = new GVRRenderData(gvrContext);
+            renderData.setMesh(
+                    GVRMesh.createQuad(gvrContext,
+                            "float3 a_position float2 a_texcoord",
+                            1.0f, 1.0f));
+            attachComponent(renderData);
         }
+
+        mRootViewGroup.createSurfaceTexture(texture.getId());
+
+        material.setMainTexture(texture);
+        renderData.setMaterial(material);
+
+        attachComponent(new GVRMeshCollider(gvrContext, renderData.getMesh(),true));
+    }
+
+    private void adjustQuadAspectRatio() {
+        final float frameWidth = mRootViewGroup.getWidth();
+        final float frameHeight = mRootViewGroup.getHeight();
+        final float viewSize = Math.max(frameWidth, frameHeight);
+        final float quadWidth = frameWidth / viewSize;
+        final float quadHeight = frameHeight / viewSize;
+
+        float[] vertices = { quadWidth * -0.5f, quadHeight * 0.5f, 0.0f, quadWidth * -0.5f,
+                quadHeight * -0.5f, 0.0f, quadWidth * 0.5f, quadHeight * 0.5f, 0.0f,
+                quadWidth * 0.5f, quadHeight * -0.5f, 0.0f };
+
+        getRenderData().getMesh().setVertices(vertices);
     }
 
     private void addView(final GVRApplication application, int viewId) {
@@ -226,13 +274,7 @@ public class GVRViewSceneObject extends GVRSceneObject {
         mRootViewGroup.startRendering();
         getEventReceiver().addListener(mRootViewGroup);
 
-        mRootViewGroup.post(new Runnable() {
-            @Override
-            public void run() {
-                // To fix invalidate issue at S6/Note5
-                application.getFullScreenView().invalidate();
-            }
-        });
+        application.getFullScreenView().invalidate();
     }
 
     public RootViewGroup getRootView() { return mRootViewGroup; }
@@ -310,10 +352,11 @@ public class GVRViewSceneObject extends GVRSceneObject {
 
     /**
      * Set the default size of the texture buffers. You can call this to reduce the buffer size
-     * of views with anti-aliasing issue. The default size is 512px and the maximum value
-     * should be 1024px to avoid anti-aliasing issues or the display size on monoscopic mode.
+     * of views with anti-aliasing issue.
      *
-     * @param size buffer size.
+     * The max value to the buffer size should be the Math.max(width, height) of attached view.
+     *
+     * @param size buffer size. Value > 0 and <= Math.max(width, height).
      */
     public void setTextureBufferSize(int size) {
         mRootViewGroup.setTextureBufferSize(size);
@@ -405,7 +448,7 @@ public class GVRViewSceneObject extends GVRSceneObject {
      * This is the root view to overwrite the default canvas of the view by the
      * canvas of the texture attached to the scene object.
      */
-    protected static class RootViewGroup extends FrameLayout implements ITouchEvents {
+    protected class RootViewGroup extends FrameLayout implements ITouchEvents {
         final GVRContext mGVRContext;
         final GVRViewSceneObject mSceneObject;
         Surface mSurface;
@@ -417,21 +460,21 @@ public class GVRViewSceneObject extends GVRSceneObject {
         float mActionDownY;
         GVRSceneObject mSelected = null;
         SoftInputController mSoftInputController;
-        int mTextureBufferSize = 512;
 
-        public RootViewGroup(GVRApplication application, GVRViewSceneObject sceneObject) {
+        public RootViewGroup(GVRApplication application) {
             super(application.getActivity());
 
             setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
                     LayoutParams.WRAP_CONTENT));
 
             mGVRContext = application.getGVRContext();
-            mSceneObject = sceneObject;
+            mSceneObject = GVRViewSceneObject.this;
 
             // To optimization
             setWillNotDraw(true);
 
-            mSoftInputController = new SoftInputController(application.getActivity(), sceneObject);
+            mSoftInputController = new SoftInputController(application.getActivity(),
+                    GVRViewSceneObject.this);
 
 
             // To block Android's popups
@@ -526,22 +569,23 @@ public class GVRViewSceneObject extends GVRSceneObject {
         // Set the default size of the image buffers.
         // Call this after render data is ready
         public void setTextureBufferSize(int size) {
-            final GVRRenderData rdata = mSceneObject.getRenderData();
-            final GVRMaterial material = rdata.getMaterial();
             final float frameWidth = getWidth();
             final float frameHeight = getHeight();
             final float viewSize = Math.max(frameWidth, frameHeight);
             final float quadWidth = frameWidth / viewSize;
             final float quadHeight = frameHeight / viewSize;
-            final float bufferWidth = quadWidth * size;
-            final float bufferHeight = quadHeight * size;
 
-            mSurfaceTexture.setDefaultBufferSize((int) bufferWidth, (int) bufferHeight);
+            // Set the proper buffer size according to view's aspect ratio.
+            setTextureBufferSize(quadWidth * size, quadHeight * size);
+        }
 
-            material.setFloat("texelWidth", 1.0f / bufferWidth);
-            material.setFloat("texelHeight", 1.0f / bufferHeight);
+        public void setTextureBufferSize(float width, float height) {
+            final GVRMaterial material = mSceneObject.getRenderData().getMaterial();
 
-            mTextureBufferSize = size;
+            mSurfaceTexture.setDefaultBufferSize((int)width, (int)height);
+
+            material.setFloat("texelWidth", 1.0f / width);
+            material.setFloat("texelHeight", 1.0f / height);
         }
 
         @Override
@@ -568,9 +612,8 @@ public class GVRViewSceneObject extends GVRSceneObject {
         }
 
         private void onLayoutReady() {
-            createRenderData();
-
-            createSurfaceTexture();
+            // Set the default buffer size
+            setTextureBufferSize(getWidth(), getHeight());
 
             notifyLayoutIsReady();
 
@@ -590,46 +633,17 @@ public class GVRViewSceneObject extends GVRSceneObject {
         }
 
         private void notifyObjectIsReady() {
-            post(new Runnable() {
+            mGVRContext.runOnGlThread(new Runnable() {
                 @Override
                 public void run() {
-                    // Ready to render
+                    // Ready to be rendered
                     mSceneObject.onStartRendering();
                 }
             });
         }
 
-        private void createRenderData() {
-            final GVRTexture texture = new GVRExternalTexture(mGVRContext);
-            final GVRMaterial material = new GVRMaterial(mGVRContext,
-                    new GVRShaderId(GVROESConvolutionShader.class));
-            final GVRCollider collider;
-
-            if (mSceneObject.getRenderData() == null) {
-                final float frameWidth = getWidth();
-                final float frameHeight = getHeight();
-                final float viewSize = Math.max(frameWidth, frameHeight);
-                final float quadWidth = frameWidth / viewSize;
-                final float quadHeight = frameHeight / viewSize;
-                final GVRRenderData renderData = new GVRRenderData(mGVRContext);
-                renderData.setMesh(
-                        GVRMesh.createQuad(mGVRContext,
-                                "float3 a_position float2 a_texcoord",
-                                quadWidth, quadHeight));
-                mSceneObject.attachComponent(renderData);
-            }
-
-            collider = new GVRMeshCollider(mGVRContext, mSceneObject.getRenderData().getMesh(),true);
-            material.setMainTexture(texture);
-
-            mSceneObject.getRenderData().setMaterial(material);
-            mSceneObject.attachComponent(collider);
-        }
-
-        private void createSurfaceTexture() {
-            final GVRRenderData rdata = mSceneObject.getRenderData();
-
-            mSurfaceTexture = new SurfaceTexture(rdata.getMaterial().getMainTexture().getId());
+        public void createSurfaceTexture(int textureId) {
+            mSurfaceTexture = new SurfaceTexture(textureId);
             mSurface = new Surface(mSurfaceTexture);
             mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                 Runnable onFrameAvailableGLCallback = new Runnable() {
@@ -644,8 +658,6 @@ public class GVRViewSceneObject extends GVRSceneObject {
                     mGVRContext.runOnGlThread(onFrameAvailableGLCallback);
                 }
             });
-
-            setTextureBufferSize(mTextureBufferSize);
         }
 
         private MotionEvent createMotionEvent(GVRPicker.GVRPickedObject pickInfo, int action) {
