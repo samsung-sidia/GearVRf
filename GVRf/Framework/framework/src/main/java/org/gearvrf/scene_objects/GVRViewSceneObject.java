@@ -358,8 +358,13 @@ public class GVRViewSceneObject extends GVRSceneObject {
      *
      * @param size buffer size. Value > 0 and <= Math.max(width, height).
      */
-    public void setTextureBufferSize(int size) {
-        mRootViewGroup.setTextureBufferSize(size);
+    public void setTextureBufferSize(final int size) {
+        mRootViewGroup.post(new Runnable() {
+            @Override
+            public void run() {
+                mRootViewGroup.setTextureBufferSize(size);
+            }
+        });
     }
 
     /**
