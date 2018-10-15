@@ -74,6 +74,8 @@ public:
 
     ColliderData isHit(SceneObject* owner, const float sphere[]);
     ColliderData isHit(SceneObject *owner, const glm::vec3& rayStart, const glm::vec3& rayDir);
+    ColliderData isHit(const glm::mat4 &model_matrix, const float radius, const glm::vec3 &capsuleA,
+           const glm::vec3 &capsuleB, const glm::vec3 &rayStart, const glm::vec3 &rayDir);
 
 private:
     float radius_;
