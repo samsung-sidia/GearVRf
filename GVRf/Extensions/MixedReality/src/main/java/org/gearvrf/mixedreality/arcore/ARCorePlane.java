@@ -127,11 +127,6 @@ class ARCorePlane extends GVRPlane {
      * @param scale
      */
     protected void update(float scale) {
-        // Updates only when the plane is in the scene
-        if (getParent() == null || !isEnabled()) {
-            return;
-        }
-
         convertFromARtoVRSpace(scale);
 
         if (mSceneObject != null) {

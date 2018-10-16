@@ -391,7 +391,7 @@ public class ARCoreSession extends MRCommon {
         convertMatrixPoseToVector(pose, translation, rotation);
 
         Anchor anchor = mSession.createAnchor(new Pose(translation, rotation));
-        return mArCoreHelper.createAnchor(anchor);
+        return mArCoreHelper.createAnchor(anchor, AR2VR_SCALE);
     }
 
     @Override
@@ -438,7 +438,7 @@ public class ARCoreSession extends MRCommon {
                 Anchor.CloudAnchorState cloudState = anchor.getCloudAnchorState();
                 if (isReturnableState(cloudState)) {
                     ICloudAnchorListener listener = pendingAnchors.remove(anchor);
-                    GVRAnchor newAnchor = mArCoreHelper.createAnchor(anchor);
+                    GVRAnchor newAnchor = mArCoreHelper.createAnchor(anchor, AR2VR_SCALE);
                     listener.onTaskComplete(newAnchor);
                 }
             }
