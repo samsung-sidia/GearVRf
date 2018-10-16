@@ -26,7 +26,6 @@ import com.google.ar.core.TrackingState;
 
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRScene;
-import org.gearvrf.GVRSceneObject;
 import org.gearvrf.mixedreality.GVRAnchor;
 import org.gearvrf.mixedreality.GVRAugmentedImage;
 import org.gearvrf.mixedreality.GVRHitResult;
@@ -66,6 +65,13 @@ public class ARCoreHelper {
     }
 
     public void updatePlanes(Collection<Plane> allPlanes, float scale) {
+
+        // Don't update planes (or notify) when the plane listener is empty, i.e., there is
+        // no listener registered.
+        if (planeEventsListeners.isEmpty()) {
+            return;
+        }
+
         ARCorePlane arCorePlane;
 
         for (Plane plane: allPlanes) {
