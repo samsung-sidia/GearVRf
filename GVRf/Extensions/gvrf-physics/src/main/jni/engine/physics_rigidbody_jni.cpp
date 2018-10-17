@@ -150,6 +150,10 @@ extern "C" {
     JNIEXPORT jfloat   JNICALL
     Java_org_gearvrf_physics_Native3DRigidBody_getContactProcessingThreshold(JNIEnv * env, jobject obj,
             jlong jrigid_body) ;
+
+    JNIEXPORT void JNICALL
+    Java_org_gearvrf_physics_Native3DRigidBody_reset(JNIEnv * env, jobject obj,
+            jlong jrigid_body, jboolean rebuildCollider);
 }
 
 JNIEXPORT jlong JNICALL
@@ -462,4 +466,13 @@ Java_org_gearvrf_physics_Native3DRigidBody_getContactProcessingThreshold(JNIEnv 
 
     return rigid_body->getContactProcessingThreshold();
 }
+
+JNIEXPORT void JNICALL
+Java_org_gearvrf_physics_Native3DRigidBody_reset(JNIEnv * env, jobject obj,
+        jlong jrigid_body, jboolean rebuildCollider)
+{
+    PhysicsRigidBody* rigid_body = reinterpret_cast<PhysicsRigidBody*>(jrigid_body);
+    rigid_body->reset(rebuildCollider);
+}
+
 }

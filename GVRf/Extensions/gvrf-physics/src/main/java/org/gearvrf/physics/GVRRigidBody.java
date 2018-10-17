@@ -497,6 +497,29 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
         return mCollisionGroup;
     }
 
+    /**
+     * Reset the {@linkplain GVRRigidBody rigid body}. This API is intended mainly to adapt the
+     * rigid body transform (position, rotation and scale) when the {@linkplain GVRSceneObject
+     * owner object} is changed.
+     *
+     * @param rebuildCollider rebuilds the physics collider if true.
+     */
+    public void reset(final boolean rebuildCollider) {
+        mPhysicsContext.runOnPhysicsThread(new Runnable() {
+            @Override
+            public void run() {
+                Native3DRigidBody.reset(getNative(), rebuildCollider);
+            }
+        });
+    }
+
+    /**
+     * Same as {@linkplain GVRRigidBody#reset reset(true)}
+     */
+    public void reset() {
+        reset(true);
+    }
+
     @Override
     public void onAttach(GVRSceneObject newOwner) {
         if (!mLoaded && newOwner.getCollider() == null) {
@@ -592,4 +615,6 @@ class Native3DRigidBody {
     static native int getSimulationType(long jrigid_body);
 
     static native void setSimulationType(long jrigid_body, int jtype);
+
+    static native void reset(long jrigid_body, boolean rebuildCollider);
 }
