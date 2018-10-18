@@ -115,8 +115,12 @@ class ARCorePlane extends GVRPlane {
 
         float[] translation = new float[3];
         float[] rotation = new float[4];
+        float[] arPose;
 
-        ARCoreSession.convertMatrixPoseToVector(pose, translation, rotation);
+        arPose = pose.clone();
+
+        ARCoreSession.gvr2ar(arPose);
+        ARCoreSession.convertMatrixPoseToVector(arPose, translation, rotation);
 
         return mARPlane.isPoseInPolygon(new Pose(translation, rotation));
     }

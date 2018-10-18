@@ -17,6 +17,7 @@ package org.gearvrf.mixedreality.arcore;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.opengl.Matrix;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 
@@ -420,8 +421,13 @@ public class ARCoreSession extends MRCommon {
     protected void onUpdateAnchorPose(GVRAnchor anchor, float[] pose) {
         float[] translation = new float[3];
         float[] rotation = new float[4];
+        float[] arPose;
 
-        convertMatrixPoseToVector(pose, translation, rotation);
+        arPose = pose.clone();
+
+        gvr2ar(arPose);
+
+        convertMatrixPoseToVector(arPose, translation, rotation);
 
         Anchor arAnchor = mSession.createAnchor(new Pose(translation, rotation));
         mArCoreHelper.updateAnchorPose((ARCoreAnchor) anchor, arAnchor);
@@ -562,6 +568,14 @@ public class ARCoreSession extends MRCommon {
         final float hitY = mDisplayGeometry.y - y - 0.5f * mDisplayGeometry.y;
 
         return new Vector2f(hitX, hitY);
+    }
+
+    static void gvr2ar(float[] transformModelMatrix) {
+        Matrix.scaleM(transformModelMatrix, 0, 1/AR2VR_SCALE, 1/AR2VR_SCALE, 1/AR2VR_SCALE);
+
+        transformModelMatrix[12] /= AR2VR_SCALE;
+        transformModelMatrix[13] /= AR2VR_SCALE;
+        transformModelMatrix[14] /= AR2VR_SCALE;
     }
 
     static void convertMatrixPoseToVector(float[] pose, float[] translation, float[] rotation) {
