@@ -43,6 +43,7 @@ import org.gearvrf.GVRContext;
 import org.gearvrf.GVRDrawFrameListener;
 import org.gearvrf.GVRExternalTexture;
 import org.gearvrf.GVRMaterial;
+import org.gearvrf.GVRMesh;
 import org.gearvrf.GVRMeshCollider;
 import org.gearvrf.GVRPerspectiveCamera;
 import org.gearvrf.GVRPicker;
@@ -68,6 +69,9 @@ import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -214,7 +218,6 @@ public class ARCoreSession extends MRCommon {
         showSnackbarMessage("Searching for surfaces...", false);
     }
 
-
     private void onInitARCoreSession(GVRContext gvrContext) throws CameraNotAvailableException {
         GVRTexture passThroughTexture = new GVRExternalTexture(gvrContext);
 
@@ -230,8 +233,27 @@ public class ARCoreSession extends MRCommon {
         mSession.setDisplayGeometry(Surface.ROTATION_90,
                 (int) mDisplayGeometry.x, (int) mDisplayGeometry.y);
 
+        final GVRMesh mesh = GVRMesh.createQuad(mGvrContext, "float3 a_position float2 a_texcoord",
+                mDisplayGeometry.x, mDisplayGeometry.y);
+
+        final FloatBuffer texCoords = mesh.getTexCoordsAsFloatBuffer();
+        final int capacity = texCoords.capacity();
+        final int FLOAT_SIZE = 4;
+
+        ByteBuffer bbTexCoordsTransformed = ByteBuffer.allocateDirect(capacity * FLOAT_SIZE);
+        bbTexCoordsTransformed.order(ByteOrder.nativeOrder());
+
+        FloatBuffer quadTexCoordTransformed = bbTexCoordsTransformed.asFloatBuffer();
+
+        mLastARFrame.transformDisplayUvCoords(texCoords, quadTexCoordTransformed);
+
+        float[] uv = new float[capacity];
+        quadTexCoordTransformed.get(uv);
+
+        mesh.setTexCoords(uv);
+
         /* To render texture from phone's camera */
-        mARPassThroughObject = new GVRSceneObject(gvrContext, mDisplayGeometry.x, mDisplayGeometry.y,
+        mARPassThroughObject = new GVRSceneObject(gvrContext, mesh,
                 passThroughTexture, GVRMaterial.GVRShaderType.OES.ID);
 
         mARPassThroughObject.getRenderData().setRenderingOrder(GVRRenderData.GVRRenderingOrder.BACKGROUND);
