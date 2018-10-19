@@ -473,6 +473,7 @@ void BulletRigidBody::reset(bool rebuildCollider)
     }
 
     updateColisionShapeLocalScaling();
+    mRigidBody->setMotionState(this);
     getWorldTransform(prevPos);
     mWorld->addRigidBody(mRigidBody, collisionFilterGroup, collisionFilterMask);
 }
