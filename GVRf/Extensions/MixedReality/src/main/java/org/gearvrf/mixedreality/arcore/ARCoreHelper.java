@@ -265,7 +265,9 @@ public class ARCoreHelper {
     }
 
     public void registerPlaneListener(IPlaneEventsListener listener) {
-        planeEventsListeners.add(listener);
+        if (!planeEventsListeners.contains(listener)) {
+            planeEventsListeners.add(listener);
+        }
     }
 
     public void unregisterPlaneListener(IPlaneEventsListener listener) {
@@ -273,11 +275,15 @@ public class ARCoreHelper {
     }
 
     public void registerAnchorListener(IAnchorEventsListener listener) {
-        anchorEventsListeners.add(listener);
+        if (!anchorEventsListeners.contains(listener)) {
+            anchorEventsListeners.add(listener);
+        }
     }
 
     public void registerAugmentedImageListener(IAugmentedImageEventsListener listener) {
-        augmentedImageEventsListeners.add(listener);
+        if (!augmentedImageEventsListeners.contains(listener)) {
+            augmentedImageEventsListeners.add(listener);
+        }
     }
 
     private void notifyPlaneDetectionListeners(GVRPlane plane) {
