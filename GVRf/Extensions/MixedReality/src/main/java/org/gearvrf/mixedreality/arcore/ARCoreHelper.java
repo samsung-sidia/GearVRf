@@ -15,6 +15,8 @@
 
 package org.gearvrf.mixedreality.arcore;
 
+import android.opengl.Matrix;
+
 import com.google.ar.core.Anchor;
 import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.Camera;
@@ -228,7 +230,7 @@ public class ARCoreHelper {
         mGvrScene.removeSceneObject(anchor);
     }
 
-    public GVRHitResult hitTest(List<HitResult> hitResult) {
+    public GVRHitResult hitTest(List<HitResult> hitResult, float scale) {
         for (HitResult hit : hitResult) {
             // Check if any plane was hit, and if it was hit inside the plane polygon
             Trackable trackable = hit.getTrackable();
@@ -240,7 +242,10 @@ public class ARCoreHelper {
                 float[] hitPose = new float[16];
 
                 hit.getHitPose().toMatrix(hitPose, 0);
+                // Convert the value from ARCore to GVRf and set the pose
+                ar2gvr(hitPose, scale);
                 gvrHitResult.setPose(hitPose);
+                // TODO: this distance is using ARCore values, change it to use GVRf instead
                 gvrHitResult.setDistance(hit.getDistance());
                 gvrHitResult.setPlane(mArPlanes.get(trackable));
 
@@ -249,6 +254,17 @@ public class ARCoreHelper {
         }
 
         return null;
+    }
+
+    /**
+     * Converts from AR world space to GVRf world space.
+     */
+    private void ar2gvr(float[] poseMatrix, float scale) {
+        // Real world scale
+        Matrix.scaleM(poseMatrix, 0, scale, scale, scale);
+        poseMatrix[12] = poseMatrix[12] * scale;
+        poseMatrix[13] = poseMatrix[13] * scale;
+        poseMatrix[14] = poseMatrix[14] * scale;
     }
 
     public GVRLightEstimate getLightEstimate(LightEstimate lightEstimate) {

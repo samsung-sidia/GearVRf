@@ -511,7 +511,7 @@ public class ARCoreSession extends MRCommon {
 
         List<HitResult> hitResult = arFrame.hitTest(tapPosition.x, tapPosition.y);
 
-        return mArCoreHelper.hitTest(hitResult);
+        return mArCoreHelper.hitTest(hitResult, AR2VR_SCALE);
     }
 
     @Override
