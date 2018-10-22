@@ -128,7 +128,9 @@ public class ARCoreSession extends MRCommon {
                 mConfig.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
             }
             mConfig.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
-            if (!mSession.isSupported(mConfig)) {
+            ArCoreApk arCoreApk = ArCoreApk.getInstance();
+            ArCoreApk.Availability availability = arCoreApk.checkAvailability(mGvrContext.getContext());
+            if (availability == ArCoreApk.Availability.UNSUPPORTED_DEVICE_NOT_CAPABLE) {
                 showSnackbarMessage("This device does not support AR", true);
             }
             mSession.configure(mConfig);
