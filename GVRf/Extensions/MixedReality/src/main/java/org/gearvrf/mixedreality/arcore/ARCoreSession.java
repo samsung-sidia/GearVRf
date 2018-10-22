@@ -408,10 +408,13 @@ public class ARCoreSession extends MRCommon {
 
     @Override
     protected GVRAnchor onCreateAnchor(float[] pose) {
-        float[] translation = new float[3];
-        float[] rotation = new float[4];
+        final float[] translation = new float[3];
+        final float[] rotation = new float[4];
+        final float[] arPose = pose.clone();
 
-        convertMatrixPoseToVector(pose, translation, rotation);
+        gvr2ar(arPose);
+
+        convertMatrixPoseToVector(arPose, translation, rotation);
 
         Anchor anchor = mSession.createAnchor(new Pose(translation, rotation));
         return mArCoreHelper.createAnchor(anchor, AR2VR_SCALE);
@@ -419,10 +422,13 @@ public class ARCoreSession extends MRCommon {
 
     @Override
     protected void onUpdateAnchorPose(GVRAnchor anchor, float[] pose) {
-        float[] translation = new float[3];
-        float[] rotation = new float[4];
+        final float[] translation = new float[3];
+        final float[] rotation = new float[4];
+        final float[] arPose = pose.clone();
 
-        convertMatrixPoseToVector(pose, translation, rotation);
+        gvr2ar(arPose);
+
+        convertMatrixPoseToVector(arPose, translation, rotation);
 
         Anchor arAnchor = mSession.createAnchor(new Pose(translation, rotation));
         mArCoreHelper.updateAnchorPose((ARCoreAnchor) anchor, arAnchor);
@@ -581,9 +587,9 @@ public class ARCoreSession extends MRCommon {
         matrixPose.set(pose);
 
         matrixPose.getTranslation(vectorTranslation);
-        translation[0] = vectorTranslation.x / AR2VR_SCALE;
-        translation[1] = vectorTranslation.y / AR2VR_SCALE;
-        translation[2] = vectorTranslation.z / AR2VR_SCALE;
+        translation[0] = vectorTranslation.x;
+        translation[1] = vectorTranslation.y;
+        translation[2] = vectorTranslation.z;
 
         matrixPose.getNormalizedRotation(quaternionRotation);
         rotation[0] = quaternionRotation.x;
