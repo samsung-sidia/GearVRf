@@ -71,13 +71,6 @@ class ARCorePlane extends GVRPlane {
     }
 
     @Override
-    public float[] getCenterPose() {
-        float[] centerPose = new float[16];
-        mARPlane.getCenterPose().toMatrix(centerPose, 0);
-        return centerPose;
-    }
-
-    @Override
     public void getCenterPose(@NonNull float[] poseOut) {
         if(poseOut.length != 16 ){
             throw new IllegalArgumentException("Array must be 16");

@@ -58,11 +58,6 @@ public abstract class GVRPlane extends GVRSceneObject {
     public abstract GVRTrackingState getTrackingState();
 
     /**
-     * @return The plane center pose
-     */
-    public abstract float[] getCenterPose();
-
-    /**
      * Gets the center pose.
      *
      * @param poseOut Array to export the pose to.

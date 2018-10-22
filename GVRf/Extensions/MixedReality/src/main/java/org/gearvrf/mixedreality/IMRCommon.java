@@ -169,10 +169,4 @@ public interface IMRCommon {
 
     float[] makeInterpolated(float[] poseA, float[] poseB, float t);
 
-    /**
-     * Returns a matrix representing the AR camera pose
-     *
-     * @return The matrix representing the AR camera pose
-     */
-    float[] getCameraPoseMatrix();
 }

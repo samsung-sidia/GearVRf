@@ -271,12 +271,6 @@ public class ARCoreSession extends MRCommon {
         syncARCamToVRCam(mLastARFrame.getCamera(), cameraRig);
     }
 
-    @Override
-    public float[] getCameraPoseMatrix() {
-        return onGetCameraPoseMatrix();
-    }
-
-
     public class ARCoreHandler implements GVRDrawFrameListener {
         @Override
         public void onDrawFrame(float v) {
@@ -596,12 +590,5 @@ public class ARCoreSession extends MRCommon {
         rotation[1] = quaternionRotation.y;
         rotation[2] = quaternionRotation.z;
         rotation[3] = quaternionRotation.w;
-    }
-
-    @Override
-    protected float[] onGetCameraPoseMatrix() {
-        float[] matrix = new float[16];
-        mArCoreHelper.getCamera().getPose().toMatrix(matrix, 0);
-        return matrix;
     }
 }

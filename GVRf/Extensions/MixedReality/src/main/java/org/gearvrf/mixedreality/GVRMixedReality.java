@@ -225,10 +225,6 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
         return mSession.makeInterpolated(poseA, poseB, t);
     }
 
-    public float[] getCameraPoseMatrix() {
-        return mSession.getCameraPoseMatrix();
-    }
-
     private class ActivityEventsHandler extends GVREventListeners.ActivityEvents {
         @Override
         public void onPause() {
