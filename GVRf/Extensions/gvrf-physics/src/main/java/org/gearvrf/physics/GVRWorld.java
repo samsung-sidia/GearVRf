@@ -27,7 +27,6 @@ import org.gearvrf.GVRSceneObject.ComponentVisitor;
 import org.gearvrf.GVRTransform;
 import org.gearvrf.IEventReceiver;
 import org.gearvrf.IEvents;
-import org.gearvrf.ISceneObjectEvents;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -39,7 +38,6 @@ import org.joml.Vector3f;
  */
 public class GVRWorld extends GVRComponent implements IEventReceiver
 {
-    private boolean mInitialized;
     private final GVRPhysicsContext mPhysicsContext;
     private GVRWorldTask mWorldTask;
     private static final long DEFAULT_INTERVAL = 15;
@@ -125,7 +123,6 @@ public class GVRWorld extends GVRComponent implements IEventReceiver
         super(gvrContext, NativePhysics3DWorld.ctor());
         mListeners = new GVREventReceiver(this);
         mPhysicsDragger = new PhysicsDragger(gvrContext);
-        mInitialized = false;
         mCollisionMatrix = collisionMatrix;
         mWorldTask = new GVRWorldTask(interval);
         mPhysicsContext = GVRPhysicsContext.getInstance();
@@ -330,9 +327,7 @@ public class GVRWorld extends GVRComponent implements IEventReceiver
         rootSceneObject.forAllComponents(mRigidBodiesVisitor, GVRRigidBody.getComponentType());
         rootSceneObject.forAllComponents(mConstraintsVisitor, GVRConstraint.getComponentType());
 
-        if (!mInitialized) {
-            rootSceneObject.getEventReceiver().addListener(mSceneEventsHandler);
-        } else if (isEnabled()){
+        if (isEnabled()){
             startSimulation();
         }
     }
@@ -341,9 +336,6 @@ public class GVRWorld extends GVRComponent implements IEventReceiver
         rootSceneObject.forAllComponents(mConstraintsVisitor, GVRConstraint.getComponentType());
         rootSceneObject.forAllComponents(mRigidBodiesVisitor, GVRRigidBody.getComponentType());
 
-        if (!mInitialized) {
-            rootSceneObject.getEventReceiver().removeListener(mSceneEventsHandler);
-        }
         if (isEnabled()) {
             stopSimulation();
         }
@@ -372,7 +364,7 @@ public class GVRWorld extends GVRComponent implements IEventReceiver
     public void onEnable() {
         super.onEnable();
 
-        if (getOwnerObject() != null && mInitialized) {
+        if (getOwnerObject() != null) {
             startSimulation();
         }
     }
@@ -442,8 +434,6 @@ public class GVRWorld extends GVRComponent implements IEventReceiver
             simulationTime = simulationTime + SystemClock.uptimeMillis();
 
             mPhysicsContext.runAtTimeOnPhysicsThread(this, simulationTime);
-
-
         }
 
         public void start() {
@@ -474,31 +464,6 @@ public class GVRWorld extends GVRComponent implements IEventReceiver
             });
         }
     }
-
-    private ISceneObjectEvents mSceneEventsHandler = new ISceneObjectEvents() {
-
-        @Override
-        public void onInit(GVRContext gvrContext, GVRSceneObject sceneObject) {
-            if (mInitialized)
-                return;
-
-            mInitialized = true;
-            getOwnerObject().getEventReceiver().removeListener(this);
-
-            if (isEnabled()) {
-                startSimulation();
-            }
-        }
-
-        @Override
-        public void onLoaded() {}
-
-        @Override
-        public void onAfterInit() {}
-
-        @Override
-        public void onStep() {}
-    };
 
     private ComponentVisitor mRigidBodiesVisitor = new ComponentVisitor() {
 
