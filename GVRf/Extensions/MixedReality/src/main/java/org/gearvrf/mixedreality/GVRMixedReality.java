@@ -76,13 +76,12 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     public GVRMixedReality(GVRContext gvrContext, boolean enableCloudAnchor, GVRScene scene) {
         super(gvrContext, 0);
 
-
         if (scene == null) {
             scene = gvrContext.getMainScene();
         }
 
         mActivityEventsHandler = new ActivityEventsHandler();
-        mSession = new ARCoreSession(gvrContext, enableCloudAnchor);
+        mSession = new ARCoreSession(gvrContext, enableCloudAnchor, scene);
         mState = SessionState.ON_PAUSE;
 
         scene.getMainCameraRig().getOwnerObject().attachComponent(this);

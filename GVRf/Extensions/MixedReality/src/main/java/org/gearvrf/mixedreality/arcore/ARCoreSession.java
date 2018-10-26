@@ -102,11 +102,11 @@ public class ARCoreSession extends MRCommon {
 
     private final HashMap<Anchor, ICloudAnchorListener> pendingAnchors = new HashMap<>();
 
-    public ARCoreSession(GVRContext gvrContext, boolean enableCloudAnchor) {
+    public ARCoreSession(GVRContext gvrContext, boolean enableCloudAnchor, GVRScene scene) {
         super(gvrContext);
         mSession = null;
         mLastARFrame = null;
-        mVRScene = gvrContext.getMainScene();
+        mVRScene = scene;
         mArCoreHelper = new ARCoreHelper(gvrContext, mVRScene);
         mEnableCloudAnchor = enableCloudAnchor;
     }
