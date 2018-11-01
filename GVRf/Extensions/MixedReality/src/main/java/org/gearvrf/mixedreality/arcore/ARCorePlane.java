@@ -22,10 +22,8 @@ import com.google.ar.core.Pose;
 
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRSceneObject;
-import org.gearvrf.GVRTransform;
 import org.gearvrf.mixedreality.GVRPlane;
 import org.gearvrf.mixedreality.GVRTrackingState;
-import org.gearvrf.utility.Log;
 
 import java.nio.FloatBuffer;
 
@@ -40,13 +38,13 @@ class ARCorePlane extends GVRPlane {
         mARPlane = plane;
 
         if (mARPlane.getType() == Plane.Type.HORIZONTAL_DOWNWARD_FACING) {
-            mPlaneType = PlaneType.HORIZONTAL_DOWNWARD_FACING;
+            mPlaneType = Type.HORIZONTAL_DOWNWARD_FACING;
         }
         else if (mARPlane.getType() == Plane.Type.HORIZONTAL_UPWARD_FACING) {
-            mPlaneType = PlaneType.HORIZONTAL_UPWARD_FACING;
+            mPlaneType = Type.HORIZONTAL_UPWARD_FACING;
         }
         else {
-            mPlaneType = PlaneType.VERTICAL;
+            mPlaneType = Type.VERTICAL;
         }
     }
 

@@ -19,7 +19,6 @@ import android.support.annotation.NonNull;
 
 import org.gearvrf.GVRBehavior;
 import org.gearvrf.GVRContext;
-import org.gearvrf.GVRSceneObject;
 
 import java.nio.FloatBuffer;
 
@@ -31,7 +30,7 @@ public abstract class GVRPlane extends GVRBehavior
     static private long TYPE_PLANE = newComponentType(GVRPlane.class);
     protected GVRTrackingState mTrackingState;
     protected GVRPlane mParentPlane;
-    protected PlaneType mPlaneType;
+    protected Type mPlaneType;
 
     protected GVRPlane(GVRContext gvrContext)
     {
@@ -54,7 +53,7 @@ public abstract class GVRPlane extends GVRBehavior
      */
     public abstract void getCenterPose(@NonNull float[] poseOut);
 
-    public PlaneType getPlaneType()
+    public Type getPlaneType()
     {
         return mPlaneType;
     }
@@ -93,7 +92,7 @@ public abstract class GVRPlane extends GVRBehavior
     /**
      * Describes the possible types of planes
      */
-    public enum PlaneType
+    public enum Type
     {
         HORIZONTAL_DOWNWARD_FACING,
         HORIZONTAL_UPWARD_FACING,
