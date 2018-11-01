@@ -140,12 +140,11 @@ public interface IMRCommon {
     /**
      * Test collision on plane
      *
-     * @param sceneObj
      * @param x
      * @param y
      * @return
      */
-    GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y);
+    GVRHitResult hitTest(float x, float y);
 
     /**
      * @return The light estimate

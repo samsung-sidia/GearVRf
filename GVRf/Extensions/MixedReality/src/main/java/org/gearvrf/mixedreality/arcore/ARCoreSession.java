@@ -504,12 +504,9 @@ public class ARCoreSession extends MRCommon {
     }
 
     @Override
-    protected GVRHitResult onHitTest(GVRSceneObject sceneObj, float x, float y) {
-        if (sceneObj != mARPassThroughObject)
-            return null;
-
-        Vector2f tapPosition = convertToDisplayGeometrySpace(x, y);
-        List<HitResult> hitResult = arFrame.hitTest(tapPosition.x, tapPosition.y);
+    protected GVRHitResult onHitTest(float x, float y) {
+        x /= 2; y /= 2;
+        List<HitResult> hitResult = arFrame.hitTest(x, y);
         return mArCoreHelper.hitTest(hitResult, AR2VR_SCALE);
     }
 
@@ -561,7 +558,7 @@ public class ARCoreSession extends MRCommon {
 
     private Vector2f convertToDisplayGeometrySpace(float x, float y) {
         final float hitX = x + 0.5f * mDisplayGeometry.x;
-        final float hitY = mDisplayGeometry.y - y - 0.5f * mDisplayGeometry.y;
+        final float hitY = 0.5f * mDisplayGeometry.y - y;
 
         return new Vector2f(hitX, hitY);
     }
