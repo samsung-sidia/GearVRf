@@ -462,7 +462,7 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
     }
 
     /**
-     * Set the continous collision detection motion threshold factor of this {@linkplain GVRRigidBody rigid body}
+         * Set the continous collision detection motion threshold factor of this {@linkplain GVRRigidBody rigid body}
      *
      * @param n the continous collision detection motion threshold factor
      */
@@ -477,6 +477,24 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
      */
     public float getContactProcessingThreshold() {
         return Native3DRigidBody.getContactProcessingThreshold(getNative());
+    }
+
+    /**
+     * Returns the radius of sphere used to collision detection on this {@linkplain GVRRigidBody rigid body}.
+     *
+     * @return The radius of sphere to continous collision detection.
+     */
+    public float getCcdSweptSphereRadius() {
+        return Native3DRigidBody.getCcdSweptSphereRadius(getNative());
+    }
+
+    /**
+     * Set the sphere to continous collision detection of this {@linkplain GVRRigidBody rigid body}
+     *
+     * @param n Radius of sphere to continous collision detection.
+     */
+    public void setCcdSweptSphereRadius(float n) {
+        Native3DRigidBody.setCcdSweptSphereRadius(getNative(), n);
     }
 
     /**
@@ -495,6 +513,29 @@ public class GVRRigidBody extends GVRPhysicsWorldObject {
      */
     public int getCollisionGroup() {
         return mCollisionGroup;
+    }
+
+    /**
+     * Reset the {@linkplain GVRRigidBody rigid body}. This API is intended mainly to adapt the
+     * rigid body transform (position, rotation and scale) when the {@linkplain GVRSceneObject
+     * owner object} is changed.
+     *
+     * @param rebuildCollider rebuilds the physics collider if true.
+     */
+    public void reset(final boolean rebuildCollider) {
+        mPhysicsContext.runOnPhysicsThread(new Runnable() {
+            @Override
+            public void run() {
+                Native3DRigidBody.reset(getNative(), rebuildCollider);
+            }
+        });
+    }
+
+    /**
+     * Same as {@linkplain GVRRigidBody#reset reset(true)}
+     */
+    public void reset() {
+        reset(true);
     }
 
     @Override
@@ -565,6 +606,8 @@ class Native3DRigidBody {
 
     static native void setCcdMotionThreshold(long jrigid_body, float n);
 
+    static native void setCcdSweptSphereRadius(long jrigid_body, float n);
+
     static native void setContactProcessingThreshold(long jrigid_body, float n);
 
     static native void setIgnoreCollisionCheck(long jrigid_body, long jcollision_object, boolean ignore);
@@ -587,9 +630,13 @@ class Native3DRigidBody {
 
     static native float getCcdMotionThreshold(long jrigid_body);
 
+    static native float getCcdSweptSphereRadius(long jrigid_body);
+
     static native float getContactProcessingThreshold(long jrigid_body);
 
     static native int getSimulationType(long jrigid_body);
 
     static native void setSimulationType(long jrigid_body, int jtype);
+
+    static native void reset(long jrigid_body, boolean rebuildCollider);
 }

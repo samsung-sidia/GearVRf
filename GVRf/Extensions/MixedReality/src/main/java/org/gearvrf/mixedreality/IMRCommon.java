@@ -57,6 +57,13 @@ public interface IMRCommon {
     void registerPlaneListener(IPlaneEventsListener listener);
 
     /**
+     * Unregister a listener to GVRPlane events.
+     *
+     * @param listener
+     */
+    void unregisterPlaneListener(IPlaneEventsListener listener);
+
+    /**
      * Register a listener to GVRAnchor events.
      *
      * @param listener
@@ -84,15 +91,6 @@ public interface IMRCommon {
      * @return The anchor created
      */
     GVRAnchor createAnchor(float[] pose);
-
-    /**
-     * Create an anchor on pose specified and associate to the sceneObject
-     *
-     * @param pose
-     * @param sceneObject
-     * @return The anchor created
-     */
-    GVRAnchor createAnchor(float[] pose, GVRSceneObject sceneObject);
 
     /**
      * Update the pose of an anchor
@@ -132,6 +130,7 @@ public interface IMRCommon {
     void setEnableCloudAnchor(boolean enableCloudAnchor);
 
     /**
+     * Test collision on plane
      *
      * @param pick    collision returned from GVRPicker
      * @return
@@ -139,7 +138,16 @@ public interface IMRCommon {
     GVRHitResult hitTest(GVRPicker.GVRPickedObject pick);
 
     /**
+     * Test collision on plane
      *
+     * @param sceneObj
+     * @param x
+     * @param y
+     * @return
+     */
+    GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y);
+
+    /**
      * @return The light estimate
      */
     GVRLightEstimate getLightEstimate();
@@ -164,4 +172,7 @@ public interface IMRCommon {
      * @return An ArrayList of GVRAugmentedImage
      */
     ArrayList<GVRAugmentedImage> getAllAugmentedImages();
+
+    float[] makeInterpolated(float[] poseA, float[] poseB, float t);
+
 }

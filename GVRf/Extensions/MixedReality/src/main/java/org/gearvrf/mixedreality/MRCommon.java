@@ -53,6 +53,11 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
+    public void unregisterPlaneListener(IPlaneEventsListener listener) {
+        onUnregisterPlaneListener(listener);
+    }
+
+    @Override
     public void registerAnchorListener(IAnchorEventsListener listener) {
         onRegisterAnchorListener(listener);
     }
@@ -69,12 +74,7 @@ public abstract class MRCommon implements IMRCommon {
 
     @Override
     public GVRAnchor createAnchor(float[] pose) {
-        return onCreateAnchor(pose, null);
-    }
-
-    @Override
-    public GVRAnchor createAnchor(float[] pose, GVRSceneObject sceneObject) {
-        return onCreateAnchor(pose, sceneObject);
+        return onCreateAnchor(pose);
     }
 
     @Override
@@ -108,6 +108,11 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
+    public GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y) {
+        return onHitTest(sceneObj, x, y);
+    }
+
+    @Override
     public GVRLightEstimate getLightEstimate() {
         return onGetLightEstimate();
     }
@@ -127,6 +132,11 @@ public abstract class MRCommon implements IMRCommon {
         return onGetAllAugmentedImages();
     }
 
+    @Override
+    public float[] makeInterpolated(float[] poseA, float[] poseB, float t) {
+        return onMakeInterpolated(poseA, poseB, t);
+    }
+
     protected abstract void onResume();
 
     protected abstract void onPause();
@@ -135,25 +145,29 @@ public abstract class MRCommon implements IMRCommon {
 
     protected abstract void onRegisterPlaneListener(IPlaneEventsListener listener);
 
+    protected abstract void onUnregisterPlaneListener(IPlaneEventsListener listener);
+
     protected abstract void onRegisterAnchorListener(IAnchorEventsListener listener);
 
     protected abstract void onRegisterAugmentedImageListener(IAugmentedImageEventsListener listener);
 
     protected abstract ArrayList<GVRPlane> onGetAllPlanes();
 
-    protected abstract GVRAnchor onCreateAnchor(float[] pose, GVRSceneObject sceneObject);
+    protected abstract GVRAnchor onCreateAnchor(float[] pose);
 
     protected abstract void onUpdateAnchorPose(GVRAnchor anchor, float[] pose);
 
     protected abstract void onRemoveAnchor(GVRAnchor anchor);
 
-    protected  abstract void onHostAnchor(GVRAnchor anchor, ICloudAnchorListener listener);
+    protected abstract void onHostAnchor(GVRAnchor anchor, ICloudAnchorListener listener);
 
     protected abstract void onResolveCloudAnchor(String anchorId, ICloudAnchorListener listener);
 
     protected abstract void onSetEnableCloudAnchor(boolean enableCloudAnchor);
 
     protected abstract GVRHitResult onHitTest(GVRPicker.GVRPickedObject collision);
+
+    protected abstract GVRHitResult onHitTest(GVRSceneObject sceneObj, float x, float y);
 
     protected abstract GVRLightEstimate onGetLightEstimate();
 
@@ -162,4 +176,6 @@ public abstract class MRCommon implements IMRCommon {
     protected abstract void onSetAugmentedImages(ArrayList<Bitmap> imagesList);
 
     protected abstract ArrayList<GVRAugmentedImage> onGetAllAugmentedImages();
+
+    protected abstract float[] onMakeInterpolated(float[] poseA, float[] poseB, float t);
 }

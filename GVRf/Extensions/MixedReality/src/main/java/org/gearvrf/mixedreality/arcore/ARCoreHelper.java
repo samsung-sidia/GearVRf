@@ -15,8 +15,11 @@
 
 package org.gearvrf.mixedreality.arcore;
 
+import android.opengl.Matrix;
+
 import com.google.ar.core.Anchor;
 import com.google.ar.core.AugmentedImage;
+import com.google.ar.core.Camera;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.LightEstimate;
 import com.google.ar.core.Plane;
@@ -25,7 +28,6 @@ import com.google.ar.core.TrackingState;
 
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRScene;
-import org.gearvrf.GVRSceneObject;
 import org.gearvrf.mixedreality.GVRAnchor;
 import org.gearvrf.mixedreality.GVRAugmentedImage;
 import org.gearvrf.mixedreality.GVRHitResult;
@@ -54,6 +56,8 @@ public class ARCoreHelper {
     private ArrayList<IAnchorEventsListener> anchorEventsListeners = new ArrayList<>();
     private ArrayList<IAugmentedImageEventsListener> augmentedImageEventsListeners = new ArrayList<>();
 
+    private Camera mCamera;// ARCore camera
+
     public ARCoreHelper(GVRContext gvrContext, GVRScene gvrScene) {
         mGvrContext = gvrContext;
         mGvrScene = gvrScene;
@@ -62,8 +66,14 @@ public class ARCoreHelper {
         mArAnchors = new ArrayList<>();
     }
 
-    public void updatePlanes(Collection<Plane> allPlanes, float[] arViewMatrix,
-                             float[] vrCamMatrix, float scale) {
+    public void updatePlanes(Collection<Plane> allPlanes, float scale) {
+
+        // Don't update planes (or notify) when the plane listener is empty, i.e., there is
+        // no listener registered.
+        if (planeEventsListeners.isEmpty()) {
+            return;
+        }
+
         ARCorePlane arCorePlane;
 
         for (Plane plane: allPlanes) {
@@ -74,7 +84,7 @@ public class ARCoreHelper {
 
             arCorePlane = createPlane(plane);
             // FIXME: New planes are updated two times
-            arCorePlane.update(arViewMatrix, vrCamMatrix, scale);
+            arCorePlane.update(scale);
             notifyPlaneDetectionListeners(arCorePlane);
         }
 
@@ -102,7 +112,7 @@ public class ARCoreHelper {
                 notifyMergedPlane(arCorePlane, arCorePlane.getParentPlane());
             }
 
-            arCorePlane.update(arViewMatrix, vrCamMatrix, scale);
+            arCorePlane.update(scale);
         }
     }
 
@@ -142,7 +152,7 @@ public class ARCoreHelper {
         }
     }
 
-    public void updateAnchors(float[] arViewMatrix, float[] vrCamMatrix, float scale) {
+    public void updateAnchors(float scale) {
         for (ARCoreAnchor anchor: mArAnchors) {
             Anchor arAnchor = anchor.getAnchorAR();
 
@@ -162,7 +172,7 @@ public class ARCoreHelper {
                 notifyAnchorStateChangeListeners(anchor, GVRTrackingState.STOPPED);
             }
 
-            anchor.update(arViewMatrix, vrCamMatrix, scale);
+            anchor.update(scale);
         }
     }
 
@@ -197,15 +207,11 @@ public class ARCoreHelper {
         return arCoreAugmentedImage;
     }
 
-    public GVRAnchor createAnchor(Anchor arAnchor, GVRSceneObject sceneObject) {
+    public GVRAnchor createAnchor(Anchor arAnchor, float scale) {
         ARCoreAnchor arCoreAnchor = new ARCoreAnchor(mGvrContext);
         arCoreAnchor.setAnchorAR(arAnchor);
         mArAnchors.add(arCoreAnchor);
-
-        if (sceneObject != null) {
-            sceneObject.attachComponent(arCoreAnchor);
-        }
-
+        arCoreAnchor.update(scale);
         return arCoreAnchor;
     }
 
@@ -222,7 +228,7 @@ public class ARCoreHelper {
         mGvrScene.removeSceneObject(anchor.getOwnerObject());
     }
 
-    public GVRHitResult hitTest(List<HitResult> hitResult) {
+    public GVRHitResult hitTest(List<HitResult> hitResult, float scale) {
         for (HitResult hit : hitResult) {
             // Check if any plane was hit, and if it was hit inside the plane polygon
             Trackable trackable = hit.getTrackable();
@@ -234,7 +240,10 @@ public class ARCoreHelper {
                 float[] hitPose = new float[16];
 
                 hit.getHitPose().toMatrix(hitPose, 0);
+                // Convert the value from ARCore to GVRf and set the pose
+                ar2gvr(hitPose, scale);
                 gvrHitResult.setPose(hitPose);
+                // TODO: this distance is using ARCore values, change it to use GVRf instead
                 gvrHitResult.setDistance(hit.getDistance());
                 gvrHitResult.setPlane(mArPlanes.get(trackable));
 
@@ -243,6 +252,17 @@ public class ARCoreHelper {
         }
 
         return null;
+    }
+
+    /**
+     * Converts from AR world space to GVRf world space.
+     */
+    private void ar2gvr(float[] poseMatrix, float scale) {
+        // Real world scale
+        Matrix.scaleM(poseMatrix, 0, scale, scale, scale);
+        poseMatrix[12] = poseMatrix[12] * scale;
+        poseMatrix[13] = poseMatrix[13] * scale;
+        poseMatrix[14] = poseMatrix[14] * scale;
     }
 
     public GVRLightEstimate getLightEstimate(LightEstimate lightEstimate) {
@@ -259,15 +279,25 @@ public class ARCoreHelper {
     }
 
     public void registerPlaneListener(IPlaneEventsListener listener) {
-        planeEventsListeners.add(listener);
+        if (!planeEventsListeners.contains(listener)) {
+            planeEventsListeners.add(listener);
+        }
+    }
+
+    public void unregisterPlaneListener(IPlaneEventsListener listener) {
+        planeEventsListeners.remove(listener);
     }
 
     public void registerAnchorListener(IAnchorEventsListener listener) {
-        anchorEventsListeners.add(listener);
+        if (!anchorEventsListeners.contains(listener)) {
+            anchorEventsListeners.add(listener);
+        }
     }
 
     public void registerAugmentedImageListener(IAugmentedImageEventsListener listener) {
-        augmentedImageEventsListeners.add(listener);
+        if (!augmentedImageEventsListeners.contains(listener)) {
+            augmentedImageEventsListeners.add(listener);
+        }
     }
 
     private void notifyPlaneDetectionListeners(GVRPlane plane) {
@@ -304,5 +334,13 @@ public class ARCoreHelper {
         for (IAugmentedImageEventsListener listener: augmentedImageEventsListeners) {
             listener.onAugmentedImageStateChange(image, trackingState);
         }
+    }
+
+    public void setCamera(Camera camera) {
+        this.mCamera = camera;
+    }
+
+    public Camera getCamera() {
+        return mCamera;
     }
 }

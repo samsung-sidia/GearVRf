@@ -15,6 +15,8 @@
 
 package org.gearvrf.mixedreality;
 
+import android.support.annotation.NonNull;
+
 import org.gearvrf.GVRBehavior;
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRSceneObject;
@@ -46,10 +48,11 @@ public abstract class GVRPlane extends GVRBehavior
     public abstract GVRTrackingState getTrackingState();
 
     /**
+     * Gets the center pose.
      *
-     * @return The plane center pose
+     * @param poseOut Array to export the pose to.
      */
-    public abstract float[] getCenterPose();
+    public abstract void getCenterPose(@NonNull float[] poseOut);
 
     public PlaneType getPlaneType()
     {
@@ -57,31 +60,35 @@ public abstract class GVRPlane extends GVRBehavior
     }
 
     /**
-     *
      * @return The plane width
      */
     public abstract float getWidth();
 
     /**
-     *
      * @return The plane height
      */
     public abstract float getHeight();
 
     /**
-     *
      * @return The polygon that best represents the plane
      */
     public abstract FloatBuffer getPolygon();
 
     /**
-     *
      * @return The parent plane
      */
     public GVRPlane getParentPlane()
     {
         return mParentPlane;
     }
+
+    /**
+     * Check if the given pose is in the plane's polygon.
+     *
+     * @param pose the pose matrix to check
+     * @return whether the pose is in the plane's polygon or not.
+     */
+    public abstract boolean isPoseInPolygon(float[] pose);
 
     /**
      * Describes the possible types of planes
