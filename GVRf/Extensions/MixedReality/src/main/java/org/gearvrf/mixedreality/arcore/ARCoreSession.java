@@ -92,6 +92,7 @@ public class ARCoreSession extends MRCommon {
     private Frame arFrame;
     private ARCoreHandler mARCoreHandler;
     private boolean mEnableCloudAnchor;
+    private Vector2f mScreenToCamera = new Vector2f(1, 1);
 
     /* From AR to GVR space matrices */
     private float[] mGVRCamMatrix = new float[16];
@@ -235,7 +236,8 @@ public class ARCoreSession extends MRCommon {
         final GVRCameraRig cameraRig = mVRScene.getMainCameraRig();
 
         mDisplayGeometry = configDisplayGeometry(mLastARFrame.getCamera(), cameraRig);
-
+        mScreenToCamera.x = mDisplayGeometry.x / mScreenToCamera.x;    // map [0, ScreenSize] to [-Display, +Display]
+        mScreenToCamera.y = mDisplayGeometry.y / mScreenToCamera.y;
         mSession.setDisplayGeometry(Surface.ROTATION_90,
                 (int) mDisplayGeometry.x, (int) mDisplayGeometry.y);
 
@@ -333,6 +335,8 @@ public class ARCoreSession extends MRCommon {
     private void configDisplayAspectRatio(Activity activity) {
         final DisplayMetrics metrics = new DisplayMetrics();
         activity.getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+        mScreenToCamera.x = metrics.widthPixels;
+        mScreenToCamera.y = metrics.heightPixels;
         mSession.setDisplayGeometry(Surface.ROTATION_90, metrics.widthPixels, metrics.heightPixels);
     }
 
@@ -505,7 +509,8 @@ public class ARCoreSession extends MRCommon {
 
     @Override
     protected GVRHitResult onHitTest(float x, float y) {
-        x /= 2; y /= 2;
+        x *= mScreenToCamera.x;
+        y *= mScreenToCamera.y;
         List<HitResult> hitResult = arFrame.hitTest(x, y);
         return mArCoreHelper.hitTest(hitResult, AR2VR_SCALE);
     }
