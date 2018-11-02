@@ -190,13 +190,13 @@ public class GVRMixedReality extends GVRBehavior implements IMixedReality
     }
 
     @Override
-    public void hostAnchor(GVRAnchor anchor, IAnchorEvents listener) {
-        mSession.hostAnchor(anchor, listener);
+    public void hostAnchor(GVRAnchor anchor, CloudAnchorCallback cb) {
+        mSession.hostAnchor(anchor, cb);
     }
 
     @Override
-    public void resolveCloudAnchor(String anchorId, IAnchorEvents listener) {
-        mSession.resolveCloudAnchor(anchorId, listener);
+    public void resolveCloudAnchor(String anchorId, CloudAnchorCallback cb) {
+        mSession.resolveCloudAnchor(anchorId, cb);
     }
 
     @Override

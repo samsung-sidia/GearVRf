@@ -73,7 +73,9 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class ARCoreSession extends MRCommon {
@@ -100,7 +102,7 @@ public class ARCoreSession extends MRCommon {
 
     private ARCoreHelper mArCoreHelper;
 
-    private final List<Anchor> pendingAnchors = new ArrayList<>();
+    private final Map<Anchor, CloudAnchorCallback> pendingAnchors = new HashMap<>();
 
     public ARCoreSession(GVRScene scene, boolean enableCloudAnchor) {
         super(scene.getGVRContext());
@@ -439,18 +441,18 @@ public class ARCoreSession extends MRCommon {
      * available.
      */
     @Override
-    synchronized protected void onHostAnchor(GVRAnchor anchor, IAnchorEvents listener) {
+    synchronized protected void onHostAnchor(GVRAnchor anchor, CloudAnchorCallback cb) {
         Anchor newAnchor = mSession.hostCloudAnchor(((ARCoreAnchor) anchor).getAnchorAR());
-        pendingAnchors.add(newAnchor);
+        pendingAnchors.put(newAnchor, cb);
     }
 
     /**
-     * This method resolves an anchor. The {@code listener} will be invoked when the results are
+     * This method resolves an anchor. The {@link IAnchorEvents} will be invoked when the results are
      * available.
      */
-    synchronized protected void onResolveCloudAnchor(String anchorId, IAnchorEvents listener) {
+    synchronized protected void onResolveCloudAnchor(String anchorId, CloudAnchorCallback cb) {
         Anchor newAnchor = mSession.resolveCloudAnchor(anchorId);
-        pendingAnchors.add(newAnchor);
+        pendingAnchors.put(newAnchor, cb);
     }
 
     /**
@@ -458,13 +460,13 @@ public class ARCoreSession extends MRCommon {
      */
     synchronized void updateCloudAnchors(Collection<Anchor> updatedAnchors) {
         for (Anchor anchor : updatedAnchors) {
-            if (pendingAnchors.contains(anchor)) {
+            if (pendingAnchors.containsKey(anchor)) {
                 Anchor.CloudAnchorState cloudState = anchor.getCloudAnchorState();
                 if (isReturnableState(cloudState)) {
+                    CloudAnchorCallback cb = pendingAnchors.get(anchor);
                     pendingAnchors.remove(anchor);
                     GVRAnchor newAnchor = mArCoreHelper.createAnchor(anchor, AR2VR_SCALE);
-                    mGvrContext.getEventManager().sendEvent(this,
-                            IAnchorEvents.class, "onCloudUpdate", newAnchor);
+                    cb.onCloudUpdate(newAnchor);
                 }
             }
         }

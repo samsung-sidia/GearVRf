@@ -29,11 +29,4 @@ public interface IAnchorEvents extends IEvents
      * @param trackingState
      */
     void onAnchorStateChange(GVRAnchor anchor, GVRTrackingState trackingState);
-
-    /**
-     * Called when the cloud anchor feature finishes an anchor processing.
-     *
-     * @param anchor
-     */
-    void onCloudUpdate(GVRAnchor anchor);
 }

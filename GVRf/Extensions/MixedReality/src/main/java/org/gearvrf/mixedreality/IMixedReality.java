@@ -30,6 +30,16 @@ import java.util.ArrayList;
  */
 public interface IMixedReality extends IEventReceiver
 {
+    public interface CloudAnchorCallback
+    {
+        /**
+         * Called when the cloud anchor feature finishes an anchor processing.
+         *
+         * @param anchor
+         */
+        void onCloudUpdate(GVRAnchor anchor);
+    };
+
     /**
      * Resume the usage of AR functions.
      */
@@ -115,15 +125,14 @@ public interface IMixedReality extends IEventReceiver
      *
      * @param anchor
      */
-    void hostAnchor(GVRAnchor anchor, IAnchorEvents listener);
+    void hostAnchor(GVRAnchor anchor, CloudAnchorCallback cb);
 
     /**
      * Get an anchor previously hosted
      *
      * @param anchorId
-     * @param listener
      */
-    void resolveCloudAnchor(String anchorId, IAnchorEvents listener);
+    void resolveCloudAnchor(String anchorId, CloudAnchorCallback cb);
 
     /**
      * Set if cloud anchors will be available or not

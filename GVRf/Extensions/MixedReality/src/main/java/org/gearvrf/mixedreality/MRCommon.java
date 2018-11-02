@@ -21,6 +21,7 @@ import org.gearvrf.GVRContext;
 import org.gearvrf.GVREventReceiver;
 import org.gearvrf.GVRPicker;
 import org.gearvrf.GVRSceneObject;
+import org.gearvrf.debug.cli.CLIException;
 
 import java.util.ArrayList;
 
@@ -88,13 +89,13 @@ public abstract class MRCommon implements IMixedReality
     }
 
     @Override
-    public void hostAnchor(GVRAnchor anchor, IAnchorEvents listener) {
-        onHostAnchor(anchor, listener);
+    public void hostAnchor(GVRAnchor anchor, CloudAnchorCallback cb) {
+        onHostAnchor(anchor, cb);
     }
 
     @Override
-    public void resolveCloudAnchor(String anchorId, IAnchorEvents listener) {
-        onResolveCloudAnchor(anchorId, listener);
+    public void resolveCloudAnchor(String anchorId, CloudAnchorCallback cb) {
+        onResolveCloudAnchor(anchorId, cb);
     }
 
     @Override
@@ -151,9 +152,9 @@ public abstract class MRCommon implements IMixedReality
 
     protected abstract void onRemoveAnchor(GVRAnchor anchor);
 
-    protected abstract void onHostAnchor(GVRAnchor anchor, IAnchorEvents listener);
+    protected abstract void onHostAnchor(GVRAnchor anchor, CloudAnchorCallback cb);
 
-    protected abstract void onResolveCloudAnchor(String anchorId, IAnchorEvents listener);
+    protected abstract void onResolveCloudAnchor(String anchorId, CloudAnchorCallback cb);
 
     protected abstract void onSetEnableCloudAnchor(boolean enableCloudAnchor);
 
