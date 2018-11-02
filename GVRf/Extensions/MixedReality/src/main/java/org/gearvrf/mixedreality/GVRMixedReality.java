@@ -79,10 +79,28 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
      */
     public GVRMixedReality(GVRScene scene, boolean enableCloudAnchor)
     {
+        this(scene, enableCloudAnchor, "arcore");
+    }
+
+    /**
+     * Default GVRMixedReality constructor. Create a instace of GVRMixedReality component, set
+     * the use of cloud anchors and add it to the specified scened.
+     *
+     * @param scene scene containing the virtual objects
+     * @param enableCloudAnchor true to enable cloud anchors, false to disable
+     * @param arPlatform    string with name of underlying AR platform to use:
+     *                      "arcore" indicates to use Google AR Core.
+     */
+    public GVRMixedReality(GVRScene scene, boolean enableCloudAnchor, String arPlatform)
+    {
         super(scene.getGVRContext());
         mType = getComponentType();
         mActivityEventsHandler = new ActivityEventsHandler();
-        mSession = new ARCoreSession(scene, enableCloudAnchor);
+        if (arPlatform.equals("arcore"))
+        {
+            mSession = new ARCoreSession(scene, enableCloudAnchor);
+        }
+        else throw new IllegalArgumentException("ARCore is the only AR platform currently supported");
         mState = SessionState.ON_PAUSE;
         scene.getMainCameraRig().getOwnerObject().attachComponent(this);
     }
@@ -150,6 +168,19 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
             throw new UnsupportedOperationException("Session is not resumed");
         }
         return mSession.createAnchor(pose);
+    }
+
+    @Override
+    public GVRSceneObject createAnchorNode(float[] pose)
+    {
+        GVRAnchor anchor = createAnchor(pose);
+        if (anchor != null)
+        {
+            GVRSceneObject node = new GVRSceneObject(anchor.getGVRContext());
+            node.attachComponent(anchor);
+            return node;
+        }
+        return null;
     }
 
     @Override

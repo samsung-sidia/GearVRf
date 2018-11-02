@@ -73,6 +73,19 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
+    public GVRSceneObject createAnchorNode(float[] pose)
+    {
+        GVRAnchor anchor = createAnchor(pose);
+        if (anchor != null)
+        {
+            GVRSceneObject node = new GVRSceneObject(anchor.getGVRContext());
+            node.attachComponent(anchor);
+            return node;
+        }
+        return null;
+    }
+
+    @Override
     public GVRAnchor createAnchor(float[] pose) {
         return onCreateAnchor(pose);
     }

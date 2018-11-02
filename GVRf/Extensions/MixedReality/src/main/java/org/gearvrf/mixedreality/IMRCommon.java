@@ -85,12 +85,21 @@ public interface IMRCommon {
     ArrayList<GVRPlane> getAllPlanes();
 
     /**
-     * Create an anchor on pose specified.
+     * Create an anchor with the specified pose.
      *
-     * @param pose
+     * @param pose 4x4 matrix with real world position and orientation
      * @return The anchor created
      */
     GVRAnchor createAnchor(float[] pose);
+
+    /**
+     * Create an anchor with the specified pose and attach it
+     * to a newly created node.
+     *
+     * @param pose 4x4 matrix with real world position and orientation
+     * @return The node created with the GVRAnchor component attached.
+     */
+    GVRSceneObject createAnchorNode(float[] pose);
 
     /**
      * Update the pose of an anchor
