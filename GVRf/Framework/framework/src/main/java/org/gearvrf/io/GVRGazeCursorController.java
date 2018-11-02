@@ -16,16 +16,9 @@
 package org.gearvrf.io;
 
 import android.app.Activity;
-import android.os.Handler;
-import android.os.Handler.Callback;
-import android.os.HandlerThread;
-import android.os.Message;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.ViewManager;
-
-import org.gearvrf.GVRActivity;
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRPerspectiveCamera;
 import org.gearvrf.GVRScene;
@@ -41,8 +34,9 @@ final public class GVRGazeCursorController extends GVRCursorController
     private float actionDownZ;
     private final KeyEvent BUTTON_GAZE_DOWN = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_1);
     private final KeyEvent BUTTON_GAZE_UP = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_1);
-    private int mDisplayWidth = 0;
-    private int mDisplayHeight = 0;
+    private float mDisplayWidth = 0;
+    private float mDisplayHeight = 0;
+    private float mDisplayDepth;
 
     GVRGazeCursorController(GVRContext context,
                             GVRControllerType controllerType,
@@ -55,17 +49,26 @@ final public class GVRGazeCursorController extends GVRCursorController
     /**
      * Use this to enable the user interaction by touch screen on mobile applications.
      *
-     * @param enable True to enable and false to disable the touch screen.
+     * @param depth Z depth of the touch screen (distance from camera).
+     *              If zero, touch screen interaction is not enabled.
      */
-    public void setEnableTouchScreen(boolean enable) {
-        if (enable) {
+    public void setTouchScreenDepth(float depth)
+    {
+        depth = Math.abs(depth);
+        if (depth != 0)
+        {
             final Activity activity = getGVRContext().getActivity();
             final DisplayMetrics metrics = new DisplayMetrics();
             activity.getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
             mDisplayWidth = metrics.widthPixels;
             mDisplayHeight = metrics.heightPixels;
-        } else {
-            mDisplayWidth = mDisplayHeight = 0;
+            mDisplayDepth = depth;
+            mPicker.setEnable(false);   // only pick based on touch
+        }
+        else
+        {
+            mPicker.setEnable(true);    // pick based on gaze direction
+            mDisplayWidth = mDisplayHeight = mDisplayDepth = 0;
         }
     }
 
@@ -74,7 +77,7 @@ final public class GVRGazeCursorController extends GVRCursorController
      * @return True if the touch screen is enabled, otherwise returns false.
      */
     public boolean isTouchScreenEnabled() {
-        return mDisplayWidth > 0 && mDisplayHeight > 0;
+        return mDisplayDepth > 0;
     }
 
     @Override
@@ -149,21 +152,13 @@ final public class GVRGazeCursorController extends GVRCursorController
                 return;
         }
 
-        if (isTouchScreenEnabled()) {
-            final GVRPerspectiveCamera cam
-                    = getGVRContext().getMainScene().getMainCameraRig().getCenterCamera();
-            final float aspect = cam.getAspectRatio();
-            final float near = cam.getNearClippingDistance();
-            final double fov = Math.toRadians(cam.getFovY());
-            final float h = (float)(near * Math.tan(fov * 0.5f));
-            final float w = aspect * h;
-
-            final float x = (eventX / mDisplayWidth - 0.5f) * w * 2;
-            final float y = (0.5f - eventY / mDisplayHeight) *  h * 2;
-
-            pickDir.set(x / near, y / near, -1);
+        if (isTouchScreenEnabled())
+        {
+            float x = eventX - mDisplayWidth / 2;
+            float y =  mDisplayHeight / 2 - eventY;
+            float z = -mDisplayDepth;
+            setPosition(x, y, z);
         }
-
         setMotionEvent(event);
         invalidate();
     }

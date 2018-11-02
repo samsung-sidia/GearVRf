@@ -27,16 +27,17 @@ import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
 
 import org.gearvrf.GVRContext;
-import org.gearvrf.GVRScene;
+import org.gearvrf.GVRSceneObject;
 import org.gearvrf.mixedreality.GVRAnchor;
-import org.gearvrf.mixedreality.GVRAugmentedImage;
+import org.gearvrf.mixedreality.GVRMarker;
 import org.gearvrf.mixedreality.GVRHitResult;
 import org.gearvrf.mixedreality.GVRLightEstimate;
 import org.gearvrf.mixedreality.GVRPlane;
 import org.gearvrf.mixedreality.GVRTrackingState;
-import org.gearvrf.mixedreality.IAnchorEventsListener;
-import org.gearvrf.mixedreality.IAugmentedImageEventsListener;
-import org.gearvrf.mixedreality.IPlaneEventsListener;
+import org.gearvrf.mixedreality.IAnchorEvents;
+import org.gearvrf.mixedreality.IMarkerEvents;
+import org.gearvrf.mixedreality.IMixedReality;
+import org.gearvrf.mixedreality.IPlaneEvents;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,36 +45,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ARCoreHelper {
+public class ARCoreHelper
+{
     private GVRContext mGvrContext;
-    private GVRScene mGvrScene;
-
+    private IMixedReality mMixedReality;
     private Map<Plane, ARCorePlane> mArPlanes;
-    private Map<AugmentedImage, ARCoreAugmentedImage> mArAugmentedImages;
+    private Map<AugmentedImage, ARCoreMarker> mArAugmentedImages;
     private List<ARCoreAnchor> mArAnchors;
-
-    private ArrayList<IPlaneEventsListener> planeEventsListeners = new ArrayList<>();
-    private ArrayList<IAnchorEventsListener> anchorEventsListeners = new ArrayList<>();
-    private ArrayList<IAugmentedImageEventsListener> augmentedImageEventsListeners = new ArrayList<>();
 
     private Camera mCamera;// ARCore camera
 
-    public ARCoreHelper(GVRContext gvrContext, GVRScene gvrScene) {
+    public ARCoreHelper(GVRContext gvrContext, IMixedReality mr) {
         mGvrContext = gvrContext;
-        mGvrScene = gvrScene;
+        mMixedReality = mr;
         mArPlanes = new HashMap<>();
         mArAugmentedImages = new HashMap<>();
         mArAnchors = new ArrayList<>();
+    }
+
+
+    public void setCamera(Camera camera) {
+        this.mCamera = camera;
+    }
+
+    public Camera getCamera() {
+        return mCamera;
     }
 
     public void updatePlanes(Collection<Plane> allPlanes, float scale) {
 
         // Don't update planes (or notify) when the plane listener is empty, i.e., there is
         // no listener registered.
-        if (planeEventsListeners.isEmpty()) {
-            return;
-        }
-
         ARCorePlane arCorePlane;
 
         for (Plane plane: allPlanes) {
@@ -117,7 +119,7 @@ public class ARCoreHelper {
     }
 
     public void updateAugmentedImages(Collection<AugmentedImage> allAugmentedImages){
-        ARCoreAugmentedImage arCoreAugmentedImage;
+        ARCoreMarker arCoreMarker;
 
         for (AugmentedImage augmentedImage: allAugmentedImages) {
             if (augmentedImage.getTrackingState() != TrackingState.TRACKING
@@ -125,29 +127,29 @@ public class ARCoreHelper {
                 continue;
             }
 
-            arCoreAugmentedImage = createAugmentedImage(augmentedImage);
-            notifyAugmentedImageDetectionListeners(arCoreAugmentedImage);
+            arCoreMarker = createMarker(augmentedImage);
+            notifyMarkerDetectionListeners(arCoreMarker);
 
-            mArAugmentedImages.put(augmentedImage, arCoreAugmentedImage);
+            mArAugmentedImages.put(augmentedImage, arCoreMarker);
         }
 
         for (AugmentedImage augmentedImage: mArAugmentedImages.keySet()) {
-            arCoreAugmentedImage = mArAugmentedImages.get(augmentedImage);
+            arCoreMarker = mArAugmentedImages.get(augmentedImage);
 
             if (augmentedImage.getTrackingState() == TrackingState.TRACKING &&
-                    arCoreAugmentedImage.getTrackingState() != GVRTrackingState.TRACKING) {
-                arCoreAugmentedImage.setTrackingState(GVRTrackingState.TRACKING);
-                notifyAugmentedImageStateChangeListeners(arCoreAugmentedImage, GVRTrackingState.TRACKING);
+                    arCoreMarker.getTrackingState() != GVRTrackingState.TRACKING) {
+                arCoreMarker.setTrackingState(GVRTrackingState.TRACKING);
+                notifyMarkerStateChangeListeners(arCoreMarker, GVRTrackingState.TRACKING);
             }
             else if (augmentedImage.getTrackingState() == TrackingState.PAUSED &&
-                    arCoreAugmentedImage.getTrackingState() != GVRTrackingState.PAUSED) {
-                arCoreAugmentedImage.setTrackingState(GVRTrackingState.PAUSED);
-                notifyAugmentedImageStateChangeListeners(arCoreAugmentedImage, GVRTrackingState.PAUSED);
+                    arCoreMarker.getTrackingState() != GVRTrackingState.PAUSED) {
+                arCoreMarker.setTrackingState(GVRTrackingState.PAUSED);
+                notifyMarkerStateChangeListeners(arCoreMarker, GVRTrackingState.PAUSED);
             }
             else if (augmentedImage.getTrackingState() == TrackingState.STOPPED &&
-                    arCoreAugmentedImage.getTrackingState() != GVRTrackingState.STOPPED) {
-                arCoreAugmentedImage.setTrackingState(GVRTrackingState.STOPPED);
-                notifyAugmentedImageStateChangeListeners(arCoreAugmentedImage, GVRTrackingState.STOPPED);
+                    arCoreMarker.getTrackingState() != GVRTrackingState.STOPPED) {
+                arCoreMarker.setTrackingState(GVRTrackingState.STOPPED);
+                notifyMarkerStateChangeListeners(arCoreMarker, GVRTrackingState.STOPPED);
             }
         }
     }
@@ -186,8 +188,8 @@ public class ARCoreHelper {
         return allPlanes;
     }
 
-    public ArrayList<GVRAugmentedImage> getAllAugmentedImages() {
-        ArrayList<GVRAugmentedImage> allAugmentedImages = new ArrayList<>();
+    public ArrayList<GVRMarker> getAllMarkers() {
+        ArrayList<GVRMarker> allAugmentedImages = new ArrayList<>();
 
         for (AugmentedImage augmentedImage: mArAugmentedImages.keySet()) {
             allAugmentedImages.add(mArAugmentedImages.get(augmentedImage));
@@ -202,9 +204,9 @@ public class ARCoreHelper {
         return arCorePlane;
     }
 
-    public ARCoreAugmentedImage createAugmentedImage(AugmentedImage augmentedImage) {
-        ARCoreAugmentedImage arCoreAugmentedImage = new ARCoreAugmentedImage(augmentedImage);
-        return arCoreAugmentedImage;
+    public ARCoreMarker createMarker(AugmentedImage augmentedImage) {
+        ARCoreMarker arCoreMarker = new ARCoreMarker(augmentedImage);
+        return arCoreMarker;
     }
 
     public GVRAnchor createAnchor(Anchor arAnchor, float scale) {
@@ -225,7 +227,9 @@ public class ARCoreHelper {
     public void removeAnchor(ARCoreAnchor anchor) {
         anchor.getAnchorAR().detach();
         mArAnchors.remove(anchor);
-        mGvrScene.removeSceneObject(anchor.getOwnerObject());
+        GVRSceneObject anchorNode = anchor.getOwnerObject();
+        GVRSceneObject anchorParent = anchorNode.getParent();
+        anchorParent.removeChildObject(anchorNode);
     }
 
     public GVRHitResult hitTest(List<HitResult> hitResult, float scale) {
@@ -278,69 +282,50 @@ public class ARCoreHelper {
         return arCoreLightEstimate;
     }
 
-    public void registerPlaneListener(IPlaneEventsListener listener) {
-        if (!planeEventsListeners.contains(listener)) {
-            planeEventsListeners.add(listener);
-        }
-    }
-
-    public void unregisterPlaneListener(IPlaneEventsListener listener) {
-        planeEventsListeners.remove(listener);
-    }
-
-    public void registerAnchorListener(IAnchorEventsListener listener) {
-        if (!anchorEventsListeners.contains(listener)) {
-            anchorEventsListeners.add(listener);
-        }
-    }
-
-    public void registerAugmentedImageListener(IAugmentedImageEventsListener listener) {
-        if (!augmentedImageEventsListeners.contains(listener)) {
-            augmentedImageEventsListeners.add(listener);
-        }
-    }
-
     private void notifyPlaneDetectionListeners(GVRPlane plane) {
-        for (IPlaneEventsListener listener: planeEventsListeners) {
-            listener.onPlaneDetection(plane);
-        }
+        mGvrContext.getEventManager().sendEvent(mMixedReality,
+                IPlaneEvents.class,
+                "onPlaneDetected",
+                plane);
     }
 
     private void notifyPlaneStateChangeListeners(GVRPlane plane, GVRTrackingState trackingState) {
-        for (IPlaneEventsListener listener: planeEventsListeners) {
-            listener.onPlaneStateChange(plane, trackingState);
-        }
+        mGvrContext.getEventManager().sendEvent(mMixedReality,
+                IPlaneEvents.class,
+                "onPlaneStateChange",
+                plane,
+                trackingState);
     }
 
     private void notifyMergedPlane(GVRPlane childPlane, GVRPlane parentPlane) {
-        for (IPlaneEventsListener listener: planeEventsListeners) {
-            listener.onPlaneMerging(childPlane, parentPlane);
-        }
+        mGvrContext.getEventManager().sendEvent(mMixedReality,
+                IPlaneEvents.class,
+                "onPlaneMerging",
+                childPlane,
+                parentPlane);
     }
 
     private void notifyAnchorStateChangeListeners(GVRAnchor anchor, GVRTrackingState trackingState) {
-        for (IAnchorEventsListener listener: anchorEventsListeners) {
-            listener.onAnchorStateChange(anchor, trackingState);
-        }
+        mGvrContext.getEventManager().sendEvent(mMixedReality,
+                IAnchorEvents.class,
+                "onAnchorStateChange",
+                anchor,
+                trackingState);
     }
 
-    private void notifyAugmentedImageDetectionListeners(GVRAugmentedImage image) {
-        for (IAugmentedImageEventsListener listener: augmentedImageEventsListeners) {
-            listener.onAugmentedImageDetection(image);
-        }
+    private void notifyMarkerDetectionListeners(GVRMarker image) {
+        mGvrContext.getEventManager().sendEvent(mMixedReality,
+                IMarkerEvents.class,
+                "onMarkerDetected",
+                image);
     }
 
-    private void notifyAugmentedImageStateChangeListeners(GVRAugmentedImage image, GVRTrackingState trackingState) {
-        for (IAugmentedImageEventsListener listener: augmentedImageEventsListeners) {
-            listener.onAugmentedImageStateChange(image, trackingState);
-        }
+    private void notifyMarkerStateChangeListeners(GVRMarker image, GVRTrackingState trackingState) {
+        mGvrContext.getEventManager().sendEvent(mMixedReality,
+                IMarkerEvents.class,
+                "onMarkerStateChange",
+                image,
+                trackingState);
     }
 
-    public void setCamera(Camera camera) {
-        this.mCamera = camera;
-    }
-
-    public Camera getCamera() {
-        return mCamera;
-    }
 }

@@ -20,6 +20,7 @@ import android.graphics.Bitmap;
 import org.gearvrf.GVRBehavior;
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVREventListeners;
+import org.gearvrf.GVREventReceiver;
 import org.gearvrf.GVRPicker;
 import org.gearvrf.GVRScene;
 import org.gearvrf.GVRSceneObject;
@@ -32,10 +33,11 @@ import java.util.ArrayList;
 /**
  * Component to enable AR functionalities on GVRf.
  */
-public class GVRMixedReality extends GVRBehavior implements IMRCommon {
+public class GVRMixedReality extends GVRBehavior implements IMixedReality
+{
     static private long TYPE_MIXEDREALITY = newComponentType(GVRMixedReality.class);
     private final IActivityEvents mActivityEventsHandler;
-    private final MRCommon mSession;
+    private final IMixedReality mSession;
     private SessionState mState;
     private Vector3f mTempVec1 = new Vector3f();
     private Vector3f mTempVec2 = new Vector3f();
@@ -107,7 +109,15 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
 
     static public long getComponentType() { return TYPE_MIXEDREALITY; }
 
+    @Override
     public float getARToVRScale() { return mSession.getARToVRScale(); }
+
+    @Override
+    public float getScreenDepth() { return mSession.getScreenDepth(); }
+
+    @Override
+    public GVREventReceiver getEventReceiver() { return mSession.getEventReceiver(); }
+
     @Override
     public void resume() {
         if (mState == SessionState.ON_RESUME) {
@@ -132,26 +142,6 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
             throw new UnsupportedOperationException("Session is not resumed");
         }
         return mSession.getPassThroughObject();
-    }
-
-    @Override
-    public void registerPlaneListener(IPlaneEventsListener listener) {
-        mSession.registerPlaneListener(listener);
-    }
-
-    @Override
-    public void unregisterPlaneListener(IPlaneEventsListener listener) {
-        mSession.unregisterPlaneListener(listener);
-    }
-
-    @Override
-    public void registerAnchorListener(IAnchorEventsListener listener) {
-        mSession.registerAnchorListener(listener);
-    }
-
-    @Override
-    public void registerAugmentedImageListener(IAugmentedImageEventsListener listener) {
-        mSession.registerAugmentedImageListener(listener);
     }
 
     @Override
@@ -200,12 +190,12 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
-    public void hostAnchor(GVRAnchor anchor, ICloudAnchorListener listener) {
+    public void hostAnchor(GVRAnchor anchor, IAnchorEvents listener) {
         mSession.hostAnchor(anchor, listener);
     }
 
     @Override
-    public void resolveCloudAnchor(String anchorId, ICloudAnchorListener listener) {
+    public void resolveCloudAnchor(String anchorId, IAnchorEvents listener) {
         mSession.resolveCloudAnchor(anchorId, listener);
     }
 
@@ -254,18 +244,18 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
-    public void setAugmentedImage(Bitmap image) {
-        mSession.setAugmentedImage(image);
+    public void setMarker(Bitmap image) {
+        mSession.setMarker(image);
     }
 
     @Override
-    public void setAugmentedImages(ArrayList<Bitmap> imagesList) {
-        mSession.setAugmentedImages(imagesList);
+    public void setMarkers(ArrayList<Bitmap> imagesList) {
+        mSession.setMarkers(imagesList);
     }
 
     @Override
-    public ArrayList<GVRAugmentedImage> getAllAugmentedImages() {
-        return mSession.getAllAugmentedImages();
+    public ArrayList<GVRMarker> getAllMarkers() {
+        return mSession.getAllMarkers();
     }
 
     @Override

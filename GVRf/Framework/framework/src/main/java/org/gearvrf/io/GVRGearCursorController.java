@@ -335,11 +335,9 @@ public final class GVRGearCursorController extends GVRCursorController
      * @param z the z value of the position.
      */
     @Override
-    public void setPosition(float x, float y, float z)
+    protected void setPosition(float x, float y, float z)
     {
-        position.set(x, y, z);
-        pickDir.set(x, y, z);
-        pickDir.normalize();
+        super.setPosition(x, y, z);
         invalidate();
     }
 

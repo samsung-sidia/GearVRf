@@ -20,13 +20,16 @@ import android.graphics.Bitmap;
 
 import org.gearvrf.GVRPicker;
 import org.gearvrf.GVRSceneObject;
+import org.gearvrf.IEventReceiver;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 
 /**
  * This interface defines the AR functionalities of the MixedReality API.
  */
-public interface IMRCommon {
+public interface IMixedReality extends IEventReceiver
+{
     /**
      * Resume the usage of AR functions.
      */
@@ -44,38 +47,26 @@ public interface IMRCommon {
     float getARToVRScale();
 
     /**
-     *
-     * @return The passthrough object
+     * Get the Z depth of the touch screen.
+     * <p>
+     * This is useful if you want to do hit testing
+     * based on coordinates on the touch screen.
+     * The virtual display has the same dimensions
+     * as the real display. The Z coordinate gives
+     * the distance of the display from the camera
+     * in the virtual scene.
+     */
+    float getScreenDepth();
+
+    /**
+     * The passthrough object is used for AR which
+     * uses passthrough video. It is the node in the
+     * scene which has the video texture.
+     * For an AR headset, the passthrough node will
+     * be null.
+     * @return The video passthrough object if it exists
      */
     GVRSceneObject getPassThroughObject();
-
-    /**
-     * Register a listener to GVRPlane events.
-     *
-     * @param listener
-     */
-    void registerPlaneListener(IPlaneEventsListener listener);
-
-    /**
-     * Unregister a listener to GVRPlane events.
-     *
-     * @param listener
-     */
-    void unregisterPlaneListener(IPlaneEventsListener listener);
-
-    /**
-     * Register a listener to GVRAnchor events.
-     *
-     * @param listener
-     */
-    void registerAnchorListener(IAnchorEventsListener listener);
-
-    /**
-     * Register a listener to GVRAugmentedImage events.
-     *
-     * @param listener
-     */
-    void registerAugmentedImageListener(IAugmentedImageEventsListener listener);
 
     /**
      * Gets all detected planes.
@@ -102,10 +93,13 @@ public interface IMRCommon {
     GVRSceneObject createAnchorNode(float[] pose);
 
     /**
-     * Update the pose of an anchor
+     * Update the pose of an anchor.
+     * <p>
+     * The pose matrix for an anchor is with respect to the real
+     * world camera, not the camera for the SXR scene.
      *
-     * @param anchor
-     * @param pose
+     * @param anchor anchor to update
+     * @param pose   float array with 4x4 matrix with new pose
      */
     void updateAnchorPose(GVRAnchor anchor, float[] pose);
 
@@ -121,7 +115,7 @@ public interface IMRCommon {
      *
      * @param anchor
      */
-    void hostAnchor(GVRAnchor anchor, ICloudAnchorListener listener);
+    void hostAnchor(GVRAnchor anchor, IAnchorEvents listener);
 
     /**
      * Get an anchor previously hosted
@@ -129,7 +123,7 @@ public interface IMRCommon {
      * @param anchorId
      * @param listener
      */
-    void resolveCloudAnchor(String anchorId, ICloudAnchorListener listener);
+    void resolveCloudAnchor(String anchorId, IAnchorEvents listener);
 
     /**
      * Set if cloud anchors will be available or not
@@ -165,21 +159,21 @@ public interface IMRCommon {
      *
      * @param image
      */
-    void setAugmentedImage(Bitmap image);
+    void setMarker(Bitmap image);
 
     /**
      * Set a list of reference images to be detected
      *
      * @param imagesList
      */
-    void setAugmentedImages(ArrayList<Bitmap> imagesList);
+    void setMarkers(ArrayList<Bitmap> imagesList);
 
     /**
-     * Get all detected augmented images
+     * Get all detected markers
      *
-     * @return An ArrayList of GVRAugmentedImage
+     * @return An ArrayList of GVRMarkers
      */
-    ArrayList<GVRAugmentedImage> getAllAugmentedImages();
+    ArrayList<GVRMarker> getAllMarkers();
 
     float[] makeInterpolated(float[] poseA, float[] poseB, float t);
 

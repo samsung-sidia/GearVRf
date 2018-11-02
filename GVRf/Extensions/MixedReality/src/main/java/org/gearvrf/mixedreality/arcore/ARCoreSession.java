@@ -54,14 +54,12 @@ import org.gearvrf.GVRSceneObject;
 import org.gearvrf.GVRTexture;
 import org.gearvrf.mixedreality.CameraPermissionHelper;
 import org.gearvrf.mixedreality.GVRAnchor;
-import org.gearvrf.mixedreality.GVRAugmentedImage;
+import org.gearvrf.mixedreality.GVRMarker;
 import org.gearvrf.mixedreality.GVRHitResult;
 import org.gearvrf.mixedreality.GVRLightEstimate;
 import org.gearvrf.mixedreality.GVRPlane;
-import org.gearvrf.mixedreality.IAnchorEventsListener;
-import org.gearvrf.mixedreality.IAugmentedImageEventsListener;
-import org.gearvrf.mixedreality.ICloudAnchorListener;
-import org.gearvrf.mixedreality.IPlaneEventsListener;
+import org.gearvrf.mixedreality.IAnchorEvents;
+import org.gearvrf.mixedreality.IPlaneEvents;
 import org.gearvrf.mixedreality.MRCommon;
 import org.gearvrf.utility.Log;
 import org.joml.Math;
@@ -75,7 +73,6 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -99,21 +96,29 @@ public class ARCoreSession extends MRCommon {
 
     private Vector3f mDisplayGeometry;
 
+    private float mScreenDepth;
+
     private ARCoreHelper mArCoreHelper;
 
-    private final HashMap<Anchor, ICloudAnchorListener> pendingAnchors = new HashMap<>();
+    private final List<Anchor> pendingAnchors = new ArrayList<>();
 
     public ARCoreSession(GVRScene scene, boolean enableCloudAnchor) {
         super(scene.getGVRContext());
         mSession = null;
         mLastARFrame = null;
         mVRScene = scene;
-        mArCoreHelper = new ARCoreHelper(scene.getGVRContext(), mVRScene);
+        mArCoreHelper = new ARCoreHelper(scene.getGVRContext(), this);
         mEnableCloudAnchor = enableCloudAnchor;
     }
 
     @Override
     public float getARToVRScale() { return AR2VR_SCALE; }
+
+    @Override
+    public float getScreenDepth()
+    {
+        return mScreenDepth;
+    }
 
     @Override
     protected void onResume() {
@@ -236,8 +241,6 @@ public class ARCoreSession extends MRCommon {
         final GVRCameraRig cameraRig = mVRScene.getMainCameraRig();
 
         mDisplayGeometry = configDisplayGeometry(mLastARFrame.getCamera(), cameraRig);
-        mScreenToCamera.x = mDisplayGeometry.x / mScreenToCamera.x;    // map [0, ScreenSize] to [-Display, +Display]
-        mScreenToCamera.y = mDisplayGeometry.y / mScreenToCamera.y;
         mSession.setDisplayGeometry(Surface.ROTATION_90,
                 (int) mDisplayGeometry.x, (int) mDisplayGeometry.y);
 
@@ -273,8 +276,11 @@ public class ARCoreSession extends MRCommon {
 
         /* AR main loop */
         mARCoreHandler = new ARCoreHandler();
+        gvrContext.getEventManager().sendEvent(this,
+                IPlaneEvents.class,
+                "onStartPlaneDetection",
+                this);
         gvrContext.registerDrawFrameListener(mARCoreHandler);
-
         syncARCamToVRCam(mLastARFrame.getCamera(), cameraRig);
     }
 
@@ -286,6 +292,10 @@ public class ARCoreSession extends MRCommon {
             } catch (CameraNotAvailableException e) {
                 e.printStackTrace();
                 mGvrContext.unregisterDrawFrameListener(this);
+                mGvrContext.getEventManager().sendEvent(this,
+                        IPlaneEvents.class,
+                        "onStopPlaneDetection",
+                        this);
                 return;
             }
 
@@ -340,7 +350,7 @@ public class ARCoreSession extends MRCommon {
         mSession.setDisplayGeometry(Surface.ROTATION_90, metrics.widthPixels, metrics.heightPixels);
     }
 
-    private  static Vector3f configDisplayGeometry(Camera arCamera, GVRCameraRig cameraRig) {
+    private Vector3f configDisplayGeometry(Camera arCamera, GVRCameraRig cameraRig) {
         GVRPerspectiveCamera centerCamera = cameraRig.getCenterCamera();
         float near = centerCamera.getNearClippingDistance();
         float far = centerCamera.getFarClippingDistance();
@@ -353,9 +363,9 @@ public class ARCoreSession extends MRCommon {
 
         float aspectRatio = projmtx.m11() / projmtx.m00();
         float arCamFOV = projmtx.perspectiveFov();
-
+        float tanfov =  (float) Math.tan(arCamFOV * 0.5f);
         float quadDistance = far - 1;
-        float quadHeight = new Float(2 * quadDistance * Math.tan(arCamFOV * 0.5f));
+        float quadHeight = quadDistance * tanfov * 2;
         float quadWidth = quadHeight * aspectRatio;
 
         // Use the same fov from AR to VR Camera as default value.
@@ -369,7 +379,9 @@ public class ARCoreSession extends MRCommon {
         android.util.Log.d(TAG, "ARCore configured to: passthrough[w: "
                 + quadWidth + ", h: " + quadHeight +", z: " + quadDistance
                 + "], cam fov: " +vrFov + ", aspect ratio: " + aspectRatio);
-
+        mScreenToCamera.x = quadWidth / mScreenToCamera.x;    // map [0, ScreenSize] to [-Display, +Display]
+        mScreenToCamera.y = quadHeight / mScreenToCamera.y;
+        mScreenDepth = quadHeight / tanfov;
         return new Vector3f(quadWidth, quadHeight, -quadDistance);
     }
 
@@ -382,26 +394,6 @@ public class ARCoreSession extends MRCommon {
     @Override
     protected GVRSceneObject onGetPassThroughObject() {
         return mARPassThroughObject;
-    }
-
-    @Override
-    protected void onRegisterPlaneListener(IPlaneEventsListener listener) {
-        mArCoreHelper.registerPlaneListener(listener);
-    }
-
-    @Override
-    protected void onUnregisterPlaneListener(IPlaneEventsListener listener) {
-        mArCoreHelper.unregisterPlaneListener(listener);
-    }
-
-    @Override
-    protected void onRegisterAnchorListener(IAnchorEventsListener listener) {
-        mArCoreHelper.registerAnchorListener(listener);
-    }
-
-    @Override
-    protected void onRegisterAugmentedImageListener(IAugmentedImageEventsListener listener) {
-        mArCoreHelper.registerAugmentedImageListener(listener);
     }
 
     @Override
@@ -447,18 +439,18 @@ public class ARCoreSession extends MRCommon {
      * available.
      */
     @Override
-    synchronized protected void onHostAnchor(GVRAnchor anchor, ICloudAnchorListener listener) {
+    synchronized protected void onHostAnchor(GVRAnchor anchor, IAnchorEvents listener) {
         Anchor newAnchor = mSession.hostCloudAnchor(((ARCoreAnchor) anchor).getAnchorAR());
-        pendingAnchors.put(newAnchor, listener);
+        pendingAnchors.add(newAnchor);
     }
 
     /**
      * This method resolves an anchor. The {@code listener} will be invoked when the results are
      * available.
      */
-    synchronized protected void onResolveCloudAnchor(String anchorId, ICloudAnchorListener listener) {
+    synchronized protected void onResolveCloudAnchor(String anchorId, IAnchorEvents listener) {
         Anchor newAnchor = mSession.resolveCloudAnchor(anchorId);
-        pendingAnchors.put(newAnchor, listener);
+        pendingAnchors.add(newAnchor);
     }
 
     /**
@@ -466,12 +458,13 @@ public class ARCoreSession extends MRCommon {
      */
     synchronized void updateCloudAnchors(Collection<Anchor> updatedAnchors) {
         for (Anchor anchor : updatedAnchors) {
-            if (pendingAnchors.containsKey(anchor)) {
+            if (pendingAnchors.contains(anchor)) {
                 Anchor.CloudAnchorState cloudState = anchor.getCloudAnchorState();
                 if (isReturnableState(cloudState)) {
-                    ICloudAnchorListener listener = pendingAnchors.remove(anchor);
+                    pendingAnchors.remove(anchor);
                     GVRAnchor newAnchor = mArCoreHelper.createAnchor(anchor, AR2VR_SCALE);
-                    listener.onTaskComplete(newAnchor);
+                    mGvrContext.getEventManager().sendEvent(this,
+                            IAnchorEvents.class, "onCloudUpdate", newAnchor);
                 }
             }
         }
@@ -521,14 +514,14 @@ public class ARCoreSession extends MRCommon {
     }
 
     @Override
-    protected void onSetAugmentedImage(Bitmap image) {
+    protected void onSetMarker(Bitmap image) {
         ArrayList<Bitmap> imagesList = new ArrayList<>();
         imagesList.add(image);
-        onSetAugmentedImages(imagesList);
+        onSetMarkers(imagesList);
     }
 
     @Override
-    protected void onSetAugmentedImages(ArrayList<Bitmap> imagesList) {
+    protected void onSetMarkers(ArrayList<Bitmap> imagesList) {
         AugmentedImageDatabase augmentedImageDatabase = new AugmentedImageDatabase(mSession);
         for (Bitmap image : imagesList) {
             augmentedImageDatabase.addImage("image_name", image);
@@ -539,8 +532,8 @@ public class ARCoreSession extends MRCommon {
     }
 
     @Override
-    protected ArrayList<GVRAugmentedImage> onGetAllAugmentedImages() {
-        return mArCoreHelper.getAllAugmentedImages();
+    protected ArrayList<GVRMarker> onGetAllMarkers() {
+        return mArCoreHelper.getAllMarkers();
     }
 
     @Override
