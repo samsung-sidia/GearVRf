@@ -41,8 +41,14 @@ public abstract class GVRPlane extends GVRSceneObject {
      * @param obj
      */
     public void setSceneObject(GVRSceneObject obj) {
+        // FIXME: Remove this bad logic in the future.
+        if (mSceneObject != null) {
+            removeChildObject(mSceneObject);
+        }
         mSceneObject = obj;
-        addChildObject(mSceneObject);
+        if (mSceneObject != null) {
+            addChildObject(mSceneObject);
+        }
     }
 
     /**
