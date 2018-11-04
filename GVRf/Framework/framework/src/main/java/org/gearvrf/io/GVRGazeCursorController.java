@@ -152,13 +152,30 @@ final public class GVRGazeCursorController extends GVRCursorController
                 return;
         }
 
+        if (isTouchScreenEnabled()) {
+            final GVRPerspectiveCamera cam
+                    = getGVRContext().getMainScene().getMainCameraRig().getCenterCamera();
+            final float aspect = cam.getAspectRatio();
+            final float near = cam.getNearClippingDistance();
+            final double fov = Math.toRadians(cam.getFovY());
+            final float h = (float) (near * Math.tan(fov * 0.5f));
+            final float w = aspect * h;
+
+            final float x = (eventX / mDisplayWidth - 0.5f) * w * 2;
+            final float y = (0.5f - eventY / mDisplayHeight) * h * 2;
+
+            setPosition(x / near, y / near, -1);
+        }
+
+        /* FIXME: Is is not working properly
         if (isTouchScreenEnabled())
         {
             float x = eventX - mDisplayWidth / 2;
             float y =  mDisplayHeight / 2 - eventY;
             float z = -mDisplayDepth;
             setPosition(x, y, z);
-        }
+        } */
+
         setMotionEvent(event);
         invalidate();
     }
