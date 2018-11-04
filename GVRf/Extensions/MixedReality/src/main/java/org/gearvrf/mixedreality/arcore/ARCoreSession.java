@@ -278,12 +278,12 @@ public class ARCoreSession extends MRCommon {
 
         /* AR main loop */
         mARCoreHandler = new ARCoreHandler();
+        gvrContext.registerDrawFrameListener(mARCoreHandler);
+        syncARCamToVRCam(mLastARFrame.getCamera(), cameraRig);
         gvrContext.getEventManager().sendEvent(this,
                 IPlaneEvents.class,
                 "onStartPlaneDetection",
                 this);
-        gvrContext.registerDrawFrameListener(mARCoreHandler);
-        syncARCamToVRCam(mLastARFrame.getCamera(), cameraRig);
     }
 
     public class ARCoreHandler implements GVRDrawFrameListener {
