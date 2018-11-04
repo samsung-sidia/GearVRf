@@ -485,12 +485,16 @@ public class GVRAvatar extends GVRBehavior implements IEventReceiver
     {
         public void onAssetLoaded(GVRContext context, GVRSceneObject modelRoot, String filePath, String errors)
         {
-            List<GVRComponent> components = modelRoot.getAllComponents(GVRSkeleton.getComponentType());
             String eventName = "onModelLoaded";
             if ((errors != null) && !errors.isEmpty())
             {
                 Log.e(TAG, "Asset load errors: " + errors);
+                if (modelRoot == null)
+                {
+                    return;
+                }
             }
+            List<GVRComponent> components = modelRoot.getAllComponents(GVRSkeleton.getComponentType());
             if (components.size() > 0)
             {
                 GVRSkeleton skel = (GVRSkeleton) components.get(0);
