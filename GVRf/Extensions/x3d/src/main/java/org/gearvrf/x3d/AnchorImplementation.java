@@ -340,7 +340,6 @@ public class AnchorImplementation {
                 }
             }
             if ( gazeController != null) {
-                gazeController.setOrigin(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
             }
         }
         else {

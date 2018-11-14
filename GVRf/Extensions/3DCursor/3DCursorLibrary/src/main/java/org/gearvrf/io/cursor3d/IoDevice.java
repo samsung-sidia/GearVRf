@@ -253,7 +253,7 @@ public class IoDevice {
      * @param z z value of the position
      */
     protected void setPosition(float x, float y, float z) {
-        gvrCursorController.setPosition(x, y, z);
+
     }
 
     /**
