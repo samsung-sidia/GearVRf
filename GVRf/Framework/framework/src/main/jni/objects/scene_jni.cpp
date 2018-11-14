@@ -70,10 +70,6 @@ extern "C" {
     Java_org_gearvrf_NativeScene_getLightList(JNIEnv* env, jobject obj, jlong scene);
 
     JNIEXPORT void JNICALL
-    Java_org_gearvrf_NativeScene_addCollider(JNIEnv * env,
-            jobject obj, jlong jscene, jlong jcollider);
-
-    JNIEXPORT void JNICALL
     Java_org_gearvrf_NativeScene_setMainScene(JNIEnv * env, jobject obj, jlong jscene);
 
     JNIEXPORT void JNICALL
@@ -203,14 +199,6 @@ Java_org_gearvrf_NativeScene_getLightList(JNIEnv* env, jobject obj, jlong jscene
     }
     env->DeleteLocalRef(elemClass);
     return jlights;
-}
-
-JNIEXPORT void JNICALL
-Java_org_gearvrf_NativeScene_addCollider(JNIEnv * env,
-        jobject obj, jlong jscene, jlong jcollider) {
-    Scene* scene = reinterpret_cast<Scene*>(jscene);
-    Collider* collider = reinterpret_cast<Collider*>(jcollider);
-    scene->addCollider(collider);
 }
 
 JNIEXPORT void JNICALL

@@ -48,7 +48,7 @@ Renderer::Renderer() : numberDrawCalls(0),
         batch_manager = new BatchManager(BATCH_SIZE, MAX_INDICES);
     }
 }
-void Renderer::frustum_cull(glm::vec3 camera_position, SceneObject *object,
+void Renderer::frustum_cull(glm::vec3 camera_position, Scene* scene, SceneObject *object,
         float frustum[6][4], std::vector<SceneObject*>& scene_objects,
         bool need_cull, int planeMask) {
 
@@ -102,10 +102,10 @@ void Renderer::frustum_cull(glm::vec3 camera_position, SceneObject *object,
         object->setCullStatus(false);
         scene_objects.push_back(object);
     }
-
+    scene->pick(object);
     const std::vector<SceneObject*> children = object->children();
     for (auto it = children.begin(); it != children.end(); ++it) {
-        frustum_cull(camera_position, *it, frustum, scene_objects, need_cull, planeMask);
+        frustum_cull(camera_position, scene, *it, frustum, scene_objects, need_cull, planeMask);
     }
 }
 
@@ -190,12 +190,16 @@ void Renderer::cullFromCamera(Scene *scene, jobject javaSceneObject, Camera* cam
         LOGD("FRUSTUM: start frustum culling for root %s\n", object->name().c_str());
     }
     //    frustum_cull(camera->owner_object()->transform()->position(), object, frustum, scene_objects, scene->get_frustum_culling(), 0);
-    frustum_cull(campos, object, frustum, scene_objects, scene->get_frustum_culling(), 0);
+    rstate.scene->lockColliders();
+    rstate.scene->clearVisibleColliders();
+    frustum_cull(campos, scene, object, frustum, scene_objects, scene->get_frustum_culling(), 0);
+    rstate.scene->unlockColliders();
     if (DEBUG_RENDERER) {
         LOGD("FRUSTUM: end frustum culling for root %s\n", object->name().c_str());
     }
     // 3. do occlusion culling, if enabled
     occlusion_cull(rstate, scene_objects, render_data_vector);
+
 }
 
 
@@ -209,17 +213,13 @@ void Renderer::addRenderData(RenderData *render_data, RenderState& rstate, std::
 
 bool Renderer::occlusion_cull_init(RenderState& renderState, std::vector<SceneObject*>& scene_objects,  std::vector<RenderData*>* render_data_vector){
 
-    renderState.scene->lockColliders();
-    renderState.scene->clearVisibleColliders();
     bool do_culling = renderState.scene->get_occlusion_culling();
     if (!do_culling) {
         for (auto it = scene_objects.begin(); it != scene_objects.end(); ++it) {
             SceneObject *scene_object = (*it);
             RenderData* render_data = scene_object->render_data();
             addRenderData(render_data, renderState, *render_data_vector);
-            renderState.scene->pick(scene_object);
         }
-        renderState.scene->unlockColliders();
         return false;
     }
     return true;

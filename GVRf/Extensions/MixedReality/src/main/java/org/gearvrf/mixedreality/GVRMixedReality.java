@@ -20,29 +20,36 @@ import android.graphics.Bitmap;
 import org.gearvrf.GVRBehavior;
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVREventListeners;
+import org.gearvrf.GVREventReceiver;
 import org.gearvrf.GVRPicker;
 import org.gearvrf.GVRScene;
 import org.gearvrf.GVRSceneObject;
 import org.gearvrf.IActivityEvents;
 import org.gearvrf.mixedreality.arcore.ARCoreSession;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 
 /**
  * Component to enable AR functionalities on GVRf.
  */
-public class GVRMixedReality extends GVRBehavior implements IMRCommon {
+public class GVRMixedReality extends GVRBehavior implements IMixedReality
+{
+    static private long TYPE_MIXEDREALITY = newComponentType(GVRMixedReality.class);
     private final IActivityEvents mActivityEventsHandler;
-    private final MRCommon mSession;
+    private final IMixedReality mSession;
     private SessionState mState;
+    private Vector3f mTempVec1 = new Vector3f();
+    private Vector3f mTempVec2 = new Vector3f();
 
     /**
      * Create a instace of GVRMixedReality component.
      *
      * @param gvrContext
      */
-    public GVRMixedReality(final GVRContext gvrContext) {
-        this(gvrContext, false, null);
+    public GVRMixedReality(final GVRContext gvrContext)
+    {
+        this(gvrContext, false);
     }
 
     /**
@@ -51,41 +58,65 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
      * @param gvrContext
      * @param enableCloudAnchor
      */
-    public GVRMixedReality(final GVRContext gvrContext, boolean enableCloudAnchor) {
-        this(gvrContext, enableCloudAnchor, null);
+    public GVRMixedReality(final GVRContext gvrContext, boolean enableCloudAnchor)
+    {
+        this(gvrContext.getMainScene(), enableCloudAnchor);
     }
 
     /**
      * Create a instance of GVRMixedReality component and add it to the specified scene.
      *
-     * @param gvrContext
      * @param scene
      */
-    public GVRMixedReality(final GVRContext gvrContext, GVRScene scene) {
-        this(gvrContext, false, scene);
+    public GVRMixedReality(GVRScene scene)
+    {
+        this(scene, false);
     }
 
     /**
      * Default GVRMixedReality constructor. Create a instace of GVRMixedReality component, set
      * the use of cloud anchors and add it to the specified scened.
      *
-     * @param gvrContext
-     * @param enableCloudAnchor
      * @param scene
      */
-    public GVRMixedReality(GVRContext gvrContext, boolean enableCloudAnchor, GVRScene scene) {
-        super(gvrContext, 0);
+    public GVRMixedReality(GVRScene scene, boolean enableCloudAnchor)
+    {
+        this(scene, enableCloudAnchor, "arcore");
+    }
 
-        if (scene == null) {
-            scene = gvrContext.getMainScene();
-        }
-
+    /**
+     * Default GVRMixedReality constructor. Create a instace of GVRMixedReality component, set
+     * the use of cloud anchors and add it to the specified scened.
+     *
+     * @param scene scene containing the virtual objects
+     * @param enableCloudAnchor true to enable cloud anchors, false to disable
+     * @param arPlatform    string with name of underlying AR platform to use:
+     *                      "arcore" indicates to use Google AR Core.
+     */
+    public GVRMixedReality(GVRScene scene, boolean enableCloudAnchor, String arPlatform)
+    {
+        super(scene.getGVRContext());
+        mType = getComponentType();
         mActivityEventsHandler = new ActivityEventsHandler();
-        mSession = new ARCoreSession(gvrContext, enableCloudAnchor, scene);
+        if (arPlatform.equals("arcore"))
+        {
+            mSession = new ARCoreSession(scene, enableCloudAnchor);
+        }
+        else throw new IllegalArgumentException("ARCore is the only AR platform currently supported");
         mState = SessionState.ON_PAUSE;
-
         scene.getMainCameraRig().getOwnerObject().attachComponent(this);
     }
+
+    static public long getComponentType() { return TYPE_MIXEDREALITY; }
+
+    @Override
+    public float getARToVRScale() { return mSession.getARToVRScale(); }
+
+    @Override
+    public float getScreenDepth() { return mSession.getScreenDepth(); }
+
+    @Override
+    public GVREventReceiver getEventReceiver() { return mSession.getEventReceiver(); }
 
     @Override
     public void resume() {
@@ -114,26 +145,6 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
-    public void registerPlaneListener(IPlaneEventsListener listener) {
-        mSession.registerPlaneListener(listener);
-    }
-
-    @Override
-    public void unregisterPlaneListener(IPlaneEventsListener listener) {
-        mSession.unregisterPlaneListener(listener);
-    }
-
-    @Override
-    public void registerAnchorListener(IAnchorEventsListener listener) {
-        mSession.registerAnchorListener(listener);
-    }
-
-    @Override
-    public void registerAugmentedImageListener(IAugmentedImageEventsListener listener) {
-        mSession.registerAugmentedImageListener(listener);
-    }
-
-    @Override
     public ArrayList<GVRPlane> getAllPlanes() {
         if (mState == SessionState.ON_PAUSE) {
             throw new UnsupportedOperationException("Session is not resumed");
@@ -147,6 +158,19 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
             throw new UnsupportedOperationException("Session is not resumed");
         }
         return mSession.createAnchor(pose);
+    }
+
+    @Override
+    public GVRSceneObject createAnchorNode(float[] pose)
+    {
+        GVRAnchor anchor = createAnchor(pose);
+        if (anchor != null)
+        {
+            GVRSceneObject node = new GVRSceneObject(anchor.getGVRContext());
+            node.attachComponent(anchor);
+            return node;
+        }
+        return null;
     }
 
     @Override
@@ -166,13 +190,13 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
-    public void hostAnchor(GVRAnchor anchor, ICloudAnchorListener listener) {
-        mSession.hostAnchor(anchor, listener);
+    public void hostAnchor(GVRAnchor anchor, CloudAnchorCallback cb) {
+        mSession.hostAnchor(anchor, cb);
     }
 
     @Override
-    public void resolveCloudAnchor(String anchorId, ICloudAnchorListener listener) {
-        mSession.resolveCloudAnchor(anchorId, listener);
+    public void resolveCloudAnchor(String anchorId, CloudAnchorCallback cb) {
+        mSession.resolveCloudAnchor(anchorId, cb);
     }
 
     @Override
@@ -181,19 +205,34 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
-    public GVRHitResult hitTest(GVRSceneObject sceneObj, GVRPicker.GVRPickedObject collision) {
-        if (mState == SessionState.ON_PAUSE) {
+    public GVRHitResult hitTest(GVRPicker.GVRPickedObject collision)
+    {
+        if (mState == SessionState.ON_PAUSE)
+        {
             throw new UnsupportedOperationException("Session is not resumed");
         }
-        return mSession.hitTest(sceneObj, collision);
+        collision.picker.getWorldPickRay(mTempVec1, mTempVec2);
+        if (collision.hitObject != getPassThroughObject())
+        {
+            mTempVec2.set(collision.hitLocation[0],
+                          collision.hitLocation[1],
+                          collision.hitLocation[2]);
+        }
+        GVRPicker.GVRPickedObject hit = GVRPicker.pickSceneObject(getPassThroughObject(), mTempVec1.x, mTempVec1.y, mTempVec1.z,
+                                                                  mTempVec2.x, mTempVec2.y, mTempVec2.z);
+        if (hit == null)
+        {
+            return null;
+        }
+        return mSession.hitTest(hit);
     }
 
     @Override
-    public GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y) {
+    public GVRHitResult hitTest(float x, float y) {
         if (mState == SessionState.ON_PAUSE) {
             throw new UnsupportedOperationException("Session is not resumed");
         }
-        return mSession.hitTest(sceneObj, x, y);
+        return mSession.hitTest(x, y);
     }
 
     @Override
@@ -205,18 +244,18 @@ public class GVRMixedReality extends GVRBehavior implements IMRCommon {
     }
 
     @Override
-    public void setAugmentedImage(Bitmap image) {
-        mSession.setAugmentedImage(image);
+    public void setMarker(Bitmap image) {
+        mSession.setMarker(image);
     }
 
     @Override
-    public void setAugmentedImages(ArrayList<Bitmap> imagesList) {
-        mSession.setAugmentedImages(imagesList);
+    public void setMarkers(ArrayList<Bitmap> imagesList) {
+        mSession.setMarkers(imagesList);
     }
 
     @Override
-    public ArrayList<GVRAugmentedImage> getAllAugmentedImages() {
-        return mSession.getAllAugmentedImages();
+    public ArrayList<GVRMarker> getAllMarkers() {
+        return mSession.getAllMarkers();
     }
 
     @Override

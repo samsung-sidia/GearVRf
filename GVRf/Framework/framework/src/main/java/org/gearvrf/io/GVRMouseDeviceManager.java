@@ -215,7 +215,7 @@ final class GVRMouseDeviceManager {
             {
                 setCursorDepth(depth);
             }
-            super.setPosition(x, y, -depth);
+            setPosition(x, y, -depth);
             return true;
         }
     }

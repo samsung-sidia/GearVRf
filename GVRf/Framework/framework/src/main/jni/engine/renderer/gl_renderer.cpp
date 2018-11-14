@@ -467,7 +467,6 @@ namespace gvr
 
     void GLRenderer::occlusion_cull(RenderState &rstate, std::vector<SceneObject *> &scene_objects, std::vector<RenderData*>* render_data_vector)
     {
-
         if (!occlusion_cull_init(rstate, scene_objects, render_data_vector))
             return;
 
@@ -475,6 +474,7 @@ namespace gvr
         {
             SceneObject *scene_object = (*it);
             RenderData *render_data = scene_object->render_data();
+
             if (render_data == 0 || render_data->material(0) == 0)
             {
                 continue;
@@ -548,7 +548,6 @@ namespace gvr
                 (*it)->set_visible(visibility);
                 (*it)->set_query_issued(false);
                 addRenderData((*it)->render_data(), rstate, *render_data_vector);
-                rstate.scene->pick(scene_object);
             }
         }
         rstate.scene->unlockColliders();

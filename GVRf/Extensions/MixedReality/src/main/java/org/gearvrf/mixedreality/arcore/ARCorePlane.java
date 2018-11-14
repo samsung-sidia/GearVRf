@@ -15,12 +15,14 @@
 
 package org.gearvrf.mixedreality.arcore;
 
+import org.joml.Matrix4f;
 import android.support.annotation.NonNull;
 
 import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 
 import org.gearvrf.GVRContext;
+import org.gearvrf.GVRSceneObject;
 import org.gearvrf.mixedreality.GVRPlane;
 import org.gearvrf.mixedreality.GVRTrackingState;
 
@@ -37,13 +39,13 @@ class ARCorePlane extends GVRPlane {
         mARPlane = plane;
 
         if (mARPlane.getType() == Plane.Type.HORIZONTAL_DOWNWARD_FACING) {
-            mType = Type.HORIZONTAL_DOWNWARD_FACING;
+            mPlaneType = Type.HORIZONTAL_DOWNWARD_FACING;
         }
         else if (mARPlane.getType() == Plane.Type.HORIZONTAL_UPWARD_FACING) {
-            mType = Type.HORIZONTAL_UPWARD_FACING;
+            mPlaneType = Type.HORIZONTAL_UPWARD_FACING;
         }
         else {
-            mType = Type.VERTICAL;
+            mPlaneType = Type.VERTICAL;
         }
     }
 
@@ -76,11 +78,6 @@ class ARCorePlane extends GVRPlane {
             throw new IllegalArgumentException("Array must be 16");
         }
         mARPlane.getCenterPose().toMatrix(poseOut, 0);
-    }
-
-    @Override
-    public Type getPlaneType() {
-        return mType;
     }
 
     @Override
@@ -124,11 +121,16 @@ class ARCorePlane extends GVRPlane {
      * @param scale
      */
     protected void update(float scale) {
-        convertFromARtoVRSpace(scale);
-
-        if (mSceneObject != null) {
-            mSceneObject.getTransform().setScale(mARPlane.getExtentX() * 0.95f,
-                    mARPlane.getExtentZ() * 0.95f, 1.0f);
+        GVRSceneObject owner = getOwnerObject();
+        if (isEnabled() && (owner != null) && owner.isEnabled())
+        {
+            float w = getWidth();
+            float h = getHeight();
+            mPose.update(mARPlane.getCenterPose(), scale);
+            Matrix4f m = new Matrix4f();
+            m.set(mPose.getPoseMatrix());
+            m.scaleLocal(w * 0.95f, h * 0.95f, 1.0f);
+            owner.getTransform().setModelMatrix(m);
         }
     }
     

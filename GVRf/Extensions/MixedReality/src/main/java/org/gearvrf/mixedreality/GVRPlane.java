@@ -17,48 +17,31 @@ package org.gearvrf.mixedreality;
 
 import android.support.annotation.NonNull;
 
+import org.gearvrf.GVRBehavior;
 import org.gearvrf.GVRContext;
-import org.gearvrf.GVRSceneObject;
 
 import java.nio.FloatBuffer;
 
 /**
  * Represents the  current best knowledge of a real-world planar surface.
  */
-public abstract class GVRPlane extends GVRSceneObject {
-    protected Type mType;
+public abstract class GVRPlane extends GVRBehavior
+{
+    static private long TYPE_PLANE = newComponentType(GVRPlane.class);
     protected GVRTrackingState mTrackingState;
     protected GVRPlane mParentPlane;
-    protected GVRSceneObject mSceneObject;
+    protected Type mPlaneType;
 
-    protected GVRPlane(GVRContext gvrContext) {
+    protected GVRPlane(GVRContext gvrContext)
+    {
         super(gvrContext);
+        mType = getComponentType();
     }
 
+    static public long getComponentType() { return TYPE_PLANE; }
+
     /**
-     * Set a scene object to represent the plane
      *
-     * @param obj
-     */
-    public void setSceneObject(GVRSceneObject obj) {
-        // FIXME: Remove this bad logic in the future.
-        if (mSceneObject != null) {
-            removeChildObject(mSceneObject);
-        }
-        mSceneObject = obj;
-        if (mSceneObject != null) {
-            addChildObject(mSceneObject);
-        }
-    }
-
-    /**
-     * @return The scene object that represents the plane
-     */
-    public GVRSceneObject getSceneObject() {
-        return this.mSceneObject;
-    }
-
-    /**
      * @return The plane tracking state
      */
     public abstract GVRTrackingState getTrackingState();
@@ -70,10 +53,10 @@ public abstract class GVRPlane extends GVRSceneObject {
      */
     public abstract void getCenterPose(@NonNull float[] poseOut);
 
-    /**
-     * @return The plane type
-     */
-    public abstract Type getPlaneType();
+    public Type getPlaneType()
+    {
+        return mPlaneType;
+    }
 
     /**
      * @return The plane width
@@ -93,7 +76,10 @@ public abstract class GVRPlane extends GVRSceneObject {
     /**
      * @return The parent plane
      */
-    public abstract GVRPlane getParentPlane();
+    public GVRPlane getParentPlane()
+    {
+        return mParentPlane;
+    }
 
     /**
      * Check if the given pose is in the plane's polygon.
@@ -106,7 +92,8 @@ public abstract class GVRPlane extends GVRSceneObject {
     /**
      * Describes the possible types of planes
      */
-    public enum Type {
+    public enum Type
+    {
         HORIZONTAL_DOWNWARD_FACING,
         HORIZONTAL_UPWARD_FACING,
         VERTICAL

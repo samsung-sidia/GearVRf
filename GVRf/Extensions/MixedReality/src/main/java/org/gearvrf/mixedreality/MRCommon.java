@@ -18,19 +18,27 @@ package org.gearvrf.mixedreality;
 import android.graphics.Bitmap;
 
 import org.gearvrf.GVRContext;
+import org.gearvrf.GVREventReceiver;
 import org.gearvrf.GVRPicker;
 import org.gearvrf.GVRSceneObject;
+import org.gearvrf.debug.cli.CLIException;
 
 import java.util.ArrayList;
 
-public abstract class MRCommon implements IMRCommon {
+public abstract class MRCommon implements IMixedReality
+{
     public static String TAG = MRCommon.class.getSimpleName();
 
     protected final GVRContext mGvrContext;
+    protected GVREventReceiver mListeners;
 
     public MRCommon(GVRContext gvrContext) {
         mGvrContext = gvrContext;
+        mListeners = new GVREventReceiver(this);
     }
+
+    @Override
+    public GVREventReceiver getEventReceiver() { return mListeners; }
 
     @Override
     public void resume() {
@@ -48,28 +56,21 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
-    public void registerPlaneListener(IPlaneEventsListener listener) {
-        onRegisterPlaneListener(listener);
-    }
-
-    @Override
-    public void unregisterPlaneListener(IPlaneEventsListener listener) {
-        onUnregisterPlaneListener(listener);
-    }
-
-    @Override
-    public void registerAnchorListener(IAnchorEventsListener listener) {
-        onRegisterAnchorListener(listener);
-    }
-
-    @Override
-    public void registerAugmentedImageListener(IAugmentedImageEventsListener listener) {
-        onRegisterAugmentedImageListener(listener);
-    }
-
-    @Override
     public ArrayList<GVRPlane> getAllPlanes() {
         return onGetAllPlanes();
+    }
+
+    @Override
+    public GVRSceneObject createAnchorNode(float[] pose)
+    {
+        GVRAnchor anchor = createAnchor(pose);
+        if (anchor != null)
+        {
+            GVRSceneObject node = new GVRSceneObject(anchor.getGVRContext());
+            node.attachComponent(anchor);
+            return node;
+        }
+        return null;
     }
 
     @Override
@@ -88,13 +89,13 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
-    public void hostAnchor(GVRAnchor anchor, ICloudAnchorListener listener) {
-        onHostAnchor(anchor, listener);
+    public void hostAnchor(GVRAnchor anchor, CloudAnchorCallback cb) {
+        onHostAnchor(anchor, cb);
     }
 
     @Override
-    public void resolveCloudAnchor(String anchorId, ICloudAnchorListener listener) {
-        onResolveCloudAnchor(anchorId, listener);
+    public void resolveCloudAnchor(String anchorId, CloudAnchorCallback cb) {
+        onResolveCloudAnchor(anchorId, cb);
     }
 
     @Override
@@ -103,13 +104,13 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
-    public GVRHitResult hitTest(GVRSceneObject sceneObj, GVRPicker.GVRPickedObject collision) {
-        return onHitTest(sceneObj, collision);
+    public GVRHitResult hitTest(GVRPicker.GVRPickedObject collision) {
+        return onHitTest(collision);
     }
 
     @Override
-    public GVRHitResult hitTest(GVRSceneObject sceneObj, float x, float y) {
-        return onHitTest(sceneObj, x, y);
+    public GVRHitResult hitTest(float x, float y) {
+        return onHitTest(x, y);
     }
 
     @Override
@@ -118,18 +119,18 @@ public abstract class MRCommon implements IMRCommon {
     }
 
     @Override
-    public void setAugmentedImage(Bitmap image) {
-        onSetAugmentedImage(image);
+    public void setMarker(Bitmap image) {
+        onSetMarker(image);
     }
 
     @Override
-    public void setAugmentedImages(ArrayList<Bitmap> imagesList) {
-        onSetAugmentedImages(imagesList);
+    public void setMarkers(ArrayList<Bitmap> imagesList) {
+        onSetMarkers(imagesList);
     }
 
     @Override
-    public ArrayList<GVRAugmentedImage> getAllAugmentedImages() {
-        return onGetAllAugmentedImages();
+    public ArrayList<GVRMarker> getAllMarkers() {
+        return onGetAllMarkers();
     }
 
     @Override
@@ -143,14 +144,6 @@ public abstract class MRCommon implements IMRCommon {
 
     protected abstract GVRSceneObject onGetPassThroughObject();
 
-    protected abstract void onRegisterPlaneListener(IPlaneEventsListener listener);
-
-    protected abstract void onUnregisterPlaneListener(IPlaneEventsListener listener);
-
-    protected abstract void onRegisterAnchorListener(IAnchorEventsListener listener);
-
-    protected abstract void onRegisterAugmentedImageListener(IAugmentedImageEventsListener listener);
-
     protected abstract ArrayList<GVRPlane> onGetAllPlanes();
 
     protected abstract GVRAnchor onCreateAnchor(float[] pose);
@@ -159,23 +152,23 @@ public abstract class MRCommon implements IMRCommon {
 
     protected abstract void onRemoveAnchor(GVRAnchor anchor);
 
-    protected abstract void onHostAnchor(GVRAnchor anchor, ICloudAnchorListener listener);
+    protected abstract void onHostAnchor(GVRAnchor anchor, CloudAnchorCallback cb);
 
-    protected abstract void onResolveCloudAnchor(String anchorId, ICloudAnchorListener listener);
+    protected abstract void onResolveCloudAnchor(String anchorId, CloudAnchorCallback cb);
 
     protected abstract void onSetEnableCloudAnchor(boolean enableCloudAnchor);
 
-    protected abstract GVRHitResult onHitTest(GVRSceneObject sceneObj, GVRPicker.GVRPickedObject collision);
+    protected abstract GVRHitResult onHitTest(GVRPicker.GVRPickedObject collision);
 
-    protected abstract GVRHitResult onHitTest(GVRSceneObject sceneObj, float x, float y);
+    protected abstract GVRHitResult onHitTest(float x, float y);
 
     protected abstract GVRLightEstimate onGetLightEstimate();
 
-    protected abstract void onSetAugmentedImage(Bitmap image);
+    protected abstract void onSetMarker(Bitmap image);
 
-    protected abstract void onSetAugmentedImages(ArrayList<Bitmap> imagesList);
+    protected abstract void onSetMarkers(ArrayList<Bitmap> imagesList);
 
-    protected abstract ArrayList<GVRAugmentedImage> onGetAllAugmentedImages();
+    protected abstract ArrayList<GVRMarker> onGetAllMarkers();
 
     protected abstract float[] onMakeInterpolated(float[] poseA, float[] poseB, float t);
 }

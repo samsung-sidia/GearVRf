@@ -19,6 +19,7 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.Pose;
 
 import org.gearvrf.GVRContext;
+import org.gearvrf.GVRSceneObject;
 import org.gearvrf.mixedreality.GVRAnchor;
 import org.gearvrf.mixedreality.GVRTrackingState;
 
@@ -67,7 +68,7 @@ public class ARCoreAnchor extends GVRAnchor {
     public String getCloudAnchorId() {
         return mAnchor.getCloudAnchorId();
     }
-
+/*
     @Override
     public float[] makeTranslate(float x, float y, float z) {
         float[] newPose = new float[16];
@@ -75,7 +76,7 @@ public class ARCoreAnchor extends GVRAnchor {
         pose.toMatrix(newPose, 0);
         return newPose;
     }
-
+*/
     /**
      * Update the anchor based on arcore best knowledge of the world
      *
@@ -83,8 +84,12 @@ public class ARCoreAnchor extends GVRAnchor {
      */
     protected void update(float scale) {
         // Updates only when the plane is in the scene
+        GVRSceneObject owner = getOwnerObject();
 
-        convertFromARtoVRSpace(scale);
+        if ((owner != null) && isEnabled() && owner.isEnabled())
+        {
+            convertFromARtoVRSpace(scale);
+        }
     }
 
     /**
@@ -95,5 +100,10 @@ public class ARCoreAnchor extends GVRAnchor {
     protected void convertFromARtoVRSpace(float scale) {
         mPose.update(mAnchor.getPose(), scale);
         getTransform().setModelMatrix(mPose.getPoseMatrix());
+    }
+
+    public float[] getPose()
+    {
+        return mPose.getPoseMatrix();
     }
 }
